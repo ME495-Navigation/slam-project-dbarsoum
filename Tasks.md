@@ -1,12 +1,12 @@
 Tasks:
 
-- Task 0.0 (Preliminaries) [X]
-    - Task 0.1 (Reading the Guidelines) [X]
-    - Task 0.2 (Making the Git Repo) [X]
-    - Task 0.3 (Making a README) [X]
-    - Task 0.4 (Making a Tasks.md) [X]
+- Task 0.0 (Preliminaries) [x]
+    - Task 0.1 (Reading the Guidelines) [x]
+    - Task 0.2 (Making the Git Repo) [x]
+    - Task 0.3 (Making a README) [x]
+    - Task 0.4 (Making a Tasks.md) [x]
 - Task A (Robot Description) []
-    - Task A.1 (nutturtle_description package) [X]
+    - Task A.1 (nutturtle_description package) [x]
     - Task A.2 (visualization) []
     - Task A.3 (yaml file) []
     - Task A.4 (prefix) []
