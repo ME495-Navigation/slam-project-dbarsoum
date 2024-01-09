@@ -22,18 +22,29 @@ def generate_launch_description():
             description="whether the jsp is published or not"
         ),
 
+        DeclareLaunchArgument(
+            "color",
+            default_value=["purple"],
+            description="color of the robot",
+            choices=["purple", "red", "green", "blue"]
+        ),
+
         Node(
             package="robot_state_publisher",
             executable="robot_state_publisher",
-            # arguments=[LaunchConfiguration("use_rviz")],
+            
             # condition=IfCondition(PythonExpression(["'",
             #                                         LaunchConfiguration('use_rviz'),"' == \'true\' "])),
             parameters=[
                         {"robot_description":
                             Command([ExecutableInPackage("xacro", "xacro"), " ",
                                     PathJoinSubstitution(
-                                        [FindPackageShare("nuturtle_description"), "urdf/turtlebot3_burger.urdf.xacro"])])}
-                        ]
+                                        [FindPackageShare("nuturtle_description"), "urdf/turtlebot3_burger.urdf.xacro"]), " ",
+                                    "color:=", LaunchConfiguration("color")]),
+                            "frame_prefix":
+                            [LaunchConfiguration("color"), "/"]}
+                        ],
+            namespace=LaunchConfiguration("color")
             ),
 
         Node(
@@ -42,17 +53,8 @@ def generate_launch_description():
             condition=IfCondition(PythonExpression(["'",
                                                     LaunchConfiguration('use_jsp'),
                                                     "' == \'true\' "])),
+            namespace=LaunchConfiguration("color")
             ),
-
-        # Node(
-        #     package="joint_state_publisher_gui",
-        #     executable="joint_state_publisher_gui",
-        #     arguments=[LaunchConfiguration("use_jsp")],
-        #     condition=IfCondition(PythonExpression(["'",
-        #                                             LaunchConfiguration('use_jsp'),
-        #                                             "' == \'gui\' "])),
-
-        # ),
 
         Node(
             package="rviz2",
@@ -62,7 +64,9 @@ def generate_launch_description():
                                                     LaunchConfiguration('use_rviz'),"' == \'true\' "])),
             arguments=["-d", PathJoinSubstitution(
                 [FindPackageShare("nuturtle_description"),
-                 "config/basic_purple.rviz"])],
+                 "config/basic_purple.rviz"]),
+                 "-f", [LaunchConfiguration("color"), "/base_footprint"]],
+            namespace=LaunchConfiguration("color"),
             on_exit=Shutdown()
             ),
     ])

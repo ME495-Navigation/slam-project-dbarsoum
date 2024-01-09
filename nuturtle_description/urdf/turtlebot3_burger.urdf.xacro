@@ -3,6 +3,19 @@
   xmlns:xacro="http://ros.org/wiki/xacro">
   <!-- <xacro:include filename="$(find nuturtle_desrciption)/urdf/common_properties.urdf"/> -->
 
+  <xacro:property name="yaml_file" value="$(find nuturtle_description)/config/diff_params.yaml"/>
+  <xacro:property name="yaml_variables" value="${xacro.load_yaml(yaml_file)['/**']['ros__parameters']}"/>
+
+  <xacro:property name="wheel_radius" value="${yaml_variables['wheel_radius']}"/>
+  <xacro:property name="track_width" value="${yaml_variables['track_width']}"/>
+  <xacro:property name="motor_cmd_max" value="${yaml_variables['motor_cmd_max']}"/>
+  <xacro:property name="motor_cmd_per_rad_sec" value="${yaml_variables['motor_cmd_per_rad_sec']}"/>
+  <xacro:property name="encoder_ticks_per_rad" value="${yaml_variables['encoder_ticks_per_rad']}"/>
+  <xacro:property name="collision_radius" value="${yaml_variables['collision_radius']}"/>
+
+  <!-- xacro arguments possible values are red, green, blue, and purple-->
+  <xacro:property name="color" value="$(arg color)"/>
+
   <!-- Init colour -->
   <material name="black">
       <color rgba="0.0 0.0 0.0 1.0"/>
@@ -44,6 +57,10 @@
     <color rgba="1.0 1.0 1.0 1.0"/>
   </material>
 
+  <material name="purple">
+    <color rgba="0.3 0.15 0.52 1.0"/>
+  </material>
+
   <link name="base_footprint"/>
 
   <joint name="base_joint" type="fixed">
@@ -58,15 +75,34 @@
       <geometry>
         <mesh filename="package://nuturtle_description/meshes/bases/burger_base.stl" scale="0.001 0.001 0.001"/>
       </geometry>
-      <material name="light_black"/>
+        <material name="${color}"/>
+      <!-- <material name="light_black"/> -->
     </visual>
 
-    <collision>
+    <xacro:if value="${collision_radius &gt; 0.0}">
+      <collision>
+        <origin xyz="-0.032 0 0.070" rpy="0 0 0"/>
+        <geometry>
+          <cylinder length="0.143" radius="${collision_radius}"/>
+        </geometry>
+      </collision>
+    </xacro:if>
+
+  <xacro:if value="${collision_radius &lt; 0.0}">
+      <collision>
+        <origin xyz="-0.032 0 0.070" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.140 0.140 0.143"/>
+        </geometry>
+      </collision>
+    </xacro:if>
+
+    <!-- <collision>
       <origin xyz="-0.032 0 0.070" rpy="0 0 0"/>
       <geometry>
         <box size="0.140 0.140 0.143"/>
       </geometry>
-    </collision>
+    </collision> -->
 
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -94,7 +130,7 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <cylinder length="0.018" radius="0.033"/>
+        <cylinder length="0.018" radius="${wheel_radius}"/>
       </geometry>
     </collision>
 
@@ -124,7 +160,7 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <cylinder length="0.018" radius="0.033"/>
+        <cylinder length="0.018" radius="${wheel_radius}"/>
       </geometry>
     </collision>
 
