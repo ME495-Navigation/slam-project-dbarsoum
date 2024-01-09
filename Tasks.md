@@ -7,7 +7,7 @@ Tasks:
     - [x] Task 0.4 (Making a Tasks.md) 
 - [ ] Task A (Robot Description) 
     - [x] Task A.1 (nutturtle_description package) 
-    - [ ] Task A.2 (visualization) 
+    - [x] Task A.2 (visualization) 
     - [ ] Task A.3 (yaml file) 
     - [ ] Task A.4 (prefix) 
     - [ ] Task A.5 (multi robot) 
