@@ -3,9 +3,9 @@
 <package format="3">
   <name>turtlelib</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>turtlelib library and ros-indep cmake proj</description>
   <maintainer email="demianabarsoum2027@u.northwestern.edu">demiana</maintainer>
-  <license>TODO: License declaration</license>
+  <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
