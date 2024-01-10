@@ -10,7 +10,7 @@ Tasks:
     - [x] Task A.2 (visualization) 
     - [x] Task A.3 (yaml file) 
     - [x] Task A.4 (prefix) 
-    - [ ] Task A.5 (multi robot) 
+    - [x] Task A.5 (multi robot) 
     - [ ] Task A.6 (README) 
 - [ ] Task B (C++ and 2D Transforms) 
     - [ ] Task B.1 (geometry primitives) 
