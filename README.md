@@ -19,3 +19,19 @@ URDF files for Nuturtle <Name Your Robot>
   `<Output of the Above Command>`
 * `<Command To Show Arguments of load_all.launch.py>`
   `<Output of the Above Command>`
+
+
+  cmake_minimum_required(VERSION 3.10)
+project(turtlelib)
+# tells cmake to create an executable using specified source files
+add_executable(turtlelib src/geometry.cpp)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+target_include_directories(turtlelib PUBLIC
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/src
+)
+
+
