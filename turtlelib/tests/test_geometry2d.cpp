@@ -61,8 +61,29 @@ TEST_CASE("Test operator>>", "[operator>>]")
     std::stringstream ss;
     ss << "[0 0]";
     ss >> p;
-    REQUIRE(p.x == 0.0);
-    REQUIRE(p.y == 0.0);
+    REQUIRE_THAT(p.x, Catch::Matchers::WithinAbs(0.0, 1e-12));
+    REQUIRE_THAT(p.y, Catch::Matchers::WithinAbs(0.0, 1e-12));
+
+    turtlelib::Point2D p1;
+    std::stringstream ss2;
+    ss2 << "0 0";
+    ss2 >> p1;
+    REQUIRE_THAT(p1.x, Catch::Matchers::WithinAbs(0.0, 1e-12));
+    REQUIRE_THAT(p1.y, Catch::Matchers::WithinAbs(0.0, 1e-12));
+
+    turtlelib::Point2D p2;
+    std::stringstream ss3;
+    ss3 << "[2.0 2.0]";
+    ss3 >> p2;
+    REQUIRE_THAT(p2.x, Catch::Matchers::WithinAbs(2.0, 1e-12));
+    REQUIRE_THAT(p2.y, Catch::Matchers::WithinAbs(2.0, 1e-12));
+
+    turtlelib::Point2D p3;
+    std::stringstream ss4;
+    ss4 << "2.0 2.0";
+    ss4 >> p3;
+    REQUIRE_THAT(p3.x, Catch::Matchers::WithinAbs(2.0, 1e-12));
+    REQUIRE_THAT(p3.y, Catch::Matchers::WithinAbs(2.0, 1e-12));
 }
 
 TEST_CASE("Test operator-", "[operator-]")
@@ -74,8 +95,8 @@ TEST_CASE("Test operator-", "[operator-]")
     p2.x = 0.0;
     p2.y = 0.0;
     turtlelib::Vector2D v = p1 - p2;
-    REQUIRE(v.x == 1.0);
-    REQUIRE(v.y == 1.0);
+    REQUIRE_THAT(v.x, Catch::Matchers::WithinAbs(1.0, 1e-12));
+    REQUIRE_THAT(v.y, Catch::Matchers::WithinAbs(1.0, 1e-12));
 }
 
 TEST_CASE("Test operator+", "[operator+]")
@@ -87,8 +108,8 @@ TEST_CASE("Test operator+", "[operator+]")
     v.x = 1.0;
     v.y = 1.0;
     turtlelib::Point2D p2 = p1 + v;
-    REQUIRE(p2.x == 2.0);
-    REQUIRE(p2.y == 2.0);
+    REQUIRE_THAT(p2.x, Catch::Matchers::WithinAbs(2.0, 1e-12));
+    REQUIRE_THAT(p2.y, Catch::Matchers::WithinAbs(2.0, 1e-12));
 }
 
 

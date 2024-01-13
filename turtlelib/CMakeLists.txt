@@ -19,7 +19,7 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 # you don't need or want to.
 # name is the name of the library without the extension or lib prefix
 # name creates a cmake "target"
-add_library(turtlelib src/geometry2d.cpp)
+add_library(turtlelib src/geometry2d.cpp src/se2d.cpp)
 
 # Use target_include_directories so that #include"mylibrary/header.hpp" works
 # The use of the <BUILD_INTERFACE> and <INSTALL_INTERFACE> is because when
@@ -106,14 +106,17 @@ if(BUILD_TESTING)
     find_package(Catch2 3 REQUIRED)
 
     # A test is just an executable that is linked against the unit testing library
-    add_executable (my_test_exe tests/test_geometry2d.cpp)
+    add_executable (my_test_exe tests/test_geometry2d.cpp tests/test_se2d.cpp)
+
     target_link_libraries(my_test_exe Catch2::Catch2WithMain turtlelib)
+
     target_include_directories(my_test_exe
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
     $<INSTALL_INTERFACE:include/>)
 
     # register the test with CTest, telling it what executable to run
+    # geometry2d
     add_test(NAME almost_equal COMMAND my_test_exe)
     add_test(NAME deg2rad COMMAND my_test_exe)
     add_test(NAME rad2deg COMMAND my_test_exe)
@@ -122,4 +125,9 @@ if(BUILD_TESTING)
     add_test(NAME operator>> COMMAND my_test_exe)
     add_test(NAME operator- COMMAND my_test_exe)
     add_test(NAME operator+ COMMAND my_test_exe)
+
+    # this is for se2d tests
+    add_test(NAME se2d_operator<< COMMAND my_test_exe)
+    add_test(NAME se2d_operator>> COMMAND my_test_exe)
+    add_test(NAME Transform2D COMMAND my_test_exe)
 endif()
