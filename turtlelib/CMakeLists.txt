@@ -19,7 +19,7 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 # you don't need or want to.
 # name is the name of the library without the extension or lib prefix
 # name creates a cmake "target"
-add_library(turtlelib src/geometry.cpp)
+add_library(turtlelib src/geometry2d.cpp)
 
 # Use target_include_directories so that #include"mylibrary/header.hpp" works
 # The use of the <BUILD_INTERFACE> and <INSTALL_INTERFACE> is because when
@@ -115,7 +115,11 @@ if(BUILD_TESTING)
 
     # register the test with CTest, telling it what executable to run
     add_test(NAME almost_equal COMMAND my_test_exe)
-    # add_test(NAME deg2rad COMMAND my_test_exe)
-    # add_test(NAME rad2deg COMMAND my_test_exe)
-    # add_test(NAME normalize_angle COMMAND my_test_exe)
+    add_test(NAME deg2rad COMMAND my_test_exe)
+    add_test(NAME rad2deg COMMAND my_test_exe)
+    add_test(NAME normalize_angle COMMAND my_test_exe)
+    add_test(NAME operator<< COMMAND my_test_exe)
+    add_test(NAME operator>> COMMAND my_test_exe)
+    add_test(NAME operator- COMMAND my_test_exe)
+    add_test(NAME operator+ COMMAND my_test_exe)
 endif()

@@ -1,0 +1,5 @@
+.vscode/
+turtlelib/Catch2/
+*.o
+*.d
+build/
