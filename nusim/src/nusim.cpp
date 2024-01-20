@@ -16,10 +16,10 @@ class Nusim : public rclcpp::Node
         {
             RCLCPP_INFO(this->get_logger(), "Nusim has been started.");
             /// declares a parameter
-            this->declare_parameter("frequency", 200.0);
+            this->declare_parameter("rate", 200.0);
 
             /// gets the value of the parameter
-            double frequency = this->get_parameter("frequency").as_double();
+            double frequency = this->get_parameter("rate").as_double();
 
             /// creates a publisher
             publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
