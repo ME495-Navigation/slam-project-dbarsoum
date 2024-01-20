@@ -1,2 +1,0 @@
-/usr/bin/ar qc libturtlelib.a CMakeFiles/turtlelib.dir/src/geometry.cpp.o
-/usr/bin/ranlib libturtlelib.a
