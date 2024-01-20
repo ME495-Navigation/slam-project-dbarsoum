@@ -7,7 +7,7 @@
 /// \brief 
 turtlelib::CREATE_SVG::CREATE_SVG()
 {
-    
+    svg_str = "\n<svg width=\"8.500000in\" height=\"11.000000in\" viewBox=\"0 0 816.000000 1056.000000\" xmlns=\"http://www.w3.org/2000/svg\">\n";
     svg_str += "\n<defs>";
     svg_str += "\n\t<marker";
     svg_str += "\n\t\tstyle=\"overflow:visible\"";
