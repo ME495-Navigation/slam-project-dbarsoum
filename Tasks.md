@@ -22,7 +22,7 @@ Tasks:
     - [ ] Task B.7 (conceptual questions)
 - [ ] Task C (The Simulator) 
     - [x] Task C.1 (nusim package) 
-    - [ ] Task C.2 (simulation node) 
+    - [x] Task C.2 (simulation node) 
     - [ ] Task C.3 (simulation turtle) 
     - [ ] Task C.4 (walls) 
     - [ ] Task C.5 (cylindrical obstacles) 
