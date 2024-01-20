@@ -83,23 +83,23 @@ std::ostream & turtlelib::operator<<(std::ostream & os, const turtlelib::Vector2
     return os;
 }
 
-// /// \brief input a 2 dimensional vector
-// ///   You should be able to read vectors entered as follows:
-// ///   [x y] or x y
-// /// \param is - stream from which to read
-// /// \param v [out] - output vector
-// std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Vector2D & v)
-// {
-//     char c;
-//     is >> c;
-//     if (c == '[')
-//     {
-//         is >> v.x >> v.y >> c;
-//     }
-//     else
-//     {
-//         is.putback(c);
-//         is >> v.x >> v.y;
-//     }
-//     return is;
-// }
+/// \brief input a 2 dimensional vector
+///   You should be able to read vectors entered as follows:
+///   [x y] or x y
+/// \param is - stream from which to read
+/// \param v [out] - output vector
+std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Vector2D & v)
+{
+    char c;
+    is >> c;
+    if (c == '[')
+    {
+        is >> v.x >> v.y >> c;
+    }
+    else
+    {
+        is.putback(c);
+        is >> v.x >> v.y;
+    }
+    return is;
+}
