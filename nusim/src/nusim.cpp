@@ -12,6 +12,8 @@
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "tf2_ros/transform_broadcaster.h"
 #include "nusim/srv/teleport.hpp"
+#include "visualization_msgs/msg/marker.hpp"
+#include "visualization_msgs/msg/marker_array.hpp"
 
 
 using namespace std::chrono_literals;
@@ -28,12 +30,16 @@ class Nusim : public rclcpp::Node
             this->declare_parameter("x0", 0.0);
             this->declare_parameter("y0", 0.0);
             this->declare_parameter("theta0", 0.0);
+            this->declare_parameter("arena_x_length", 5.0);
+            this->declare_parameter("arena_y_length", 10.0);
 
             /// gets the value of the parameter
             rate_ = this->get_parameter("rate").as_double();
             x0_ = this->get_parameter("x0").as_double();
             y0_ = this->get_parameter("y0").as_double();
             theta0_ = this->get_parameter("theta0").as_double();
+            arena_x_length_ = this->get_parameter("arena_x_length").as_double();
+            arena_y_length_ = this->get_parameter("arena_y_length").as_double();
 
             RCLCPP_INFO(this->get_logger(), "Teleporting turtle to (%f, %f, %f).", x0_ , y0_, theta0_);
 
@@ -43,6 +49,7 @@ class Nusim : public rclcpp::Node
 
             /// creates a publisher
             publisher_ = this->create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
+            marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("~/walls", 10);
 
             /// services
             service_ = this->create_service<std_srvs::srv::Empty>("~/reset", std::bind(&Nusim::reset_callback, this, std::placeholders::_1, std::placeholders::_2));
@@ -77,6 +84,17 @@ class Nusim : public rclcpp::Node
             t_.transform.rotation.w = q.w();
 
             tf_broadcaster_->sendTransform(t_);
+
+            // Publish the markers
+            visualization_msgs::msg::MarkerArray marker_array;
+            for (int i = 0; i < 3; ++i) {
+                addWall(marker_array, i*2.0, 0.0, "top_wall", i);
+                addWall(marker_array, 0.0, i*2.0, "right_wall", i);
+                addWall(marker_array, -i*2.0, 0.0,"bottom_wall", i);
+                addWall(marker_array, 0.0, -i*2.0, "left_wall", i);
+                }
+
+            marker_pub_->publish(marker_array);
         }
 
         void reset_callback(const std::shared_ptr<std_srvs::srv::Empty::Request>,
@@ -124,8 +142,52 @@ class Nusim : public rclcpp::Node
             tf_broadcaster_->sendTransform(t_);
         }
 
+        void addWall(visualization_msgs::msg::MarkerArray &marker_array, double x, double y, const std::string &name, int id)
+        {
+            visualization_msgs::msg::Marker marker;
+            marker.header.frame_id = "nusim/world";
+            marker.header.stamp = this->get_clock()->now();
+            marker.ns = name;
+            marker.id = 0;
+            marker.type = visualization_msgs::msg::Marker::CUBE;
+            marker.action = visualization_msgs::msg::Marker::ADD;
+            marker.pose.position.x = x; 
+            marker.pose.position.y = y;
+            marker.pose.position.z = 0.0;
+            if (name == "right_wall" || name == "left_wall") {
+                // green -- vertical walls -- no rotation needed
+                marker.pose.orientation.x = 1.0;
+                marker.pose.orientation.y = 0.0;
+                marker.pose.orientation.z = 0.0;
+                marker.pose.orientation.w = 0.0;
+                marker.color.r = 1.0;
+                marker.color.g = 0.0;
+                marker.color.b = 0.0;
+                marker.color.a = 1.0;
+                marker.scale.x = 10.0;
+                marker.scale.y = 0.1;
+                marker.scale.z = 0.25;
+                } else {
+                // blue -- top and bottom walls -- needed rotation
+                marker.pose.orientation.x = 0.0;
+                marker.pose.orientation.y = 0.0;
+                marker.pose.orientation.z = 0.0;
+                marker.pose.orientation.w = 1.0;
+                marker.color.r = 0.0;
+                marker.color.g = 0.0;
+                marker.color.b = 0.0;
+                marker.color.a = 1.0;
+                marker.scale.x = 0.1;
+                marker.scale.y = 10.0;
+                marker.scale.z = 0.25;
+                }
+            
+            marker_array.markers.push_back(marker);
+        }
         rclcpp::TimerBase::SharedPtr timer_;
         rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr publisher_;
+        rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
+        // rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_;
         rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
         rclcpp::Service<nusim::srv::Teleport>::SharedPtr service_teleport_;
         std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
@@ -136,6 +198,8 @@ class Nusim : public rclcpp::Node
         double x0_;
         double y0_;
         double theta0_;
+        double arena_x_length_;
+        double arena_y_length_;
 };
 
 int main(int argc, char ** argv)
