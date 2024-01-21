@@ -1,0 +1,15 @@
+<launch>
+    <!-- launch nusim -->
+    <node pkg="nusim" exec="nusim_node" name="nusim_node">
+        <param name="rate" value="200.0"/>
+    </node>
+
+   <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py">
+        <arg name="color" value="red"/>
+        <arg name="use_rviz" value="false"/>
+    </include>
+
+    <!-- launch rviz -->
+    <node pkg="rviz2" exec="rviz2" name="rviz2" args="-d $(find-pkg-share nusim)/config/nusim.rviz -f nusim/world" />
+
+</launch>
