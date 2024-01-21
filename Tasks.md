@@ -23,7 +23,7 @@ Tasks:
 - [ ] Task C (The Simulator) 
     - [x] Task C.1 (nusim package) 
     - [x] Task C.2 (simulation node) 
-    - [ ] Task C.3 (simulation turtle) 
+    - [x] Task C.3 (simulation turtle) 
     - [ ] Task C.4 (walls) 
     - [ ] Task C.5 (cylindrical obstacles) 
     - [ ] Task C.6 (nusim launch) 
