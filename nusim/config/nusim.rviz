@@ -108,10 +108,52 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Class: rviz_default_plugins/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        nusim/world:
+          Value: true
+        red/base_footprint:
+          Value: true
+        red/base_link:
+          Value: true
+        red/base_scan:
+          Value: true
+        red/caster_back_link:
+          Value: true
+        red/imu_link:
+          Value: true
+        red/wheel_left_link:
+          Value: true
+        red/wheel_right_link:
+          Value: true
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: false
+      Tree:
+        nusim/world:
+          red/base_footprint:
+            red/base_link:
+              red/base_scan:
+                {}
+              red/caster_back_link:
+                {}
+              red/imu_link:
+                {}
+              red/wheel_left_link:
+                {}
+              red/wheel_right_link:
+                {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: red/base_footprint
+    Fixed Frame: nusim/world
     Frame Rate: 30
   Name: root
   Tools:
