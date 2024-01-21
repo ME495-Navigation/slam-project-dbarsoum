@@ -1,1 +1,5 @@
-Worked with: Megan Black, Fiona Neylon
+Worked with: Megan Black, Fiona Neylon, Ananya
+
+Used for Markers in Task C:
+https://docs.ros.org/en/diamondback/api/rviz/html/marker__test_8cpp_source.html
+https://wiki.ros.org/rviz/DisplayTypes/Marker
