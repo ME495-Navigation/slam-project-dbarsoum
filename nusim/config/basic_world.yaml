@@ -6,4 +6,7 @@
     theta0: 0.0
     arena_x_length: 5.0  # length of arena in world x direction
     arena_y_length: 13.0  # length of arena in world y direction
-    
+    obstacle_radius: 0.038  # radius of obstacle
+    obstacles/x: [-0.5, 0.8, 0.4]  # x location of obstacles
+    obstacles/y: [-0.7, -0.8, 0.8]  # y location of obstacles
+    obstacles/r: [0.038, 0.038, 0.038]  # radius of obstacles
