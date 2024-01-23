@@ -54,14 +54,14 @@ void turtlelib::CREATE_SVG::DRAW(turtlelib::Point2D pt, std::string color)
     svg_str += " />";
 }
 
-void turtlelib::CREATE_SVG::DRAW(turtlelib::Point2D pt1, turtlelib::Point2D pt2, std::string color)
+void turtlelib::CREATE_SVG::DRAW(turtlelib::Point2D head, turtlelib::Point2D tail, std::string color)
 {
     turtlelib::Point2D pixel_pt1;
     turtlelib::Point2D pixel_pt2;
-    pixel_pt1.x = pt1.x *96.0 + 8.5/2.0*96.0;
-    pixel_pt1.y = -pt1.y *96.0 + 11.0/2.0*96.0;
-    pixel_pt2.x = pt2.x *96.0 + 8.5/2.0*96.0;
-    pixel_pt2.y = -pt2.y *96.0 + 11.0/2.0*96.0;
+    pixel_pt1.x = head.x *96.0 + 8.5/2.0*96.0;
+    pixel_pt1.y = -head.y *96.0 + 11.0/2.0*96.0;
+    pixel_pt2.x = tail.x *96.0 + 8.5/2.0*96.0;
+    pixel_pt2.y = -tail.y *96.0 + 11.0/2.0*96.0;
     svg_str += "\n<line";
     svg_str += " x1=\"" + std::to_string(pixel_pt1.x) + "\"";
     svg_str += " x2=\"" + std::to_string(pixel_pt2.x) + "\"";

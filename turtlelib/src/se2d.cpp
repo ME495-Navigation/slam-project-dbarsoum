@@ -111,8 +111,10 @@ turtlelib::Transform2D turtlelib::Transform2D::inv() const
 /// \return a reference to the newly transformed operator
 turtlelib::Transform2D & turtlelib::Transform2D::operator*=(const turtlelib::Transform2D & rhs)
 {
-    pt.x = cos(theta) * rhs.pt.x - sin(theta) * rhs.pt.y + pt.x;
+    pt.x = cos(theta) * rhs.pt.x - sin(theta) * rhs.pt.y + pt.x ;
     pt.y = sin(theta) * rhs.pt.x + cos(theta) * rhs.pt.y + pt.y;
+    // pt.x = cos(theta) * rhs.pt.x - sin(theta) * rhs.pt.y;
+    // pt.y = sin(theta) * rhs.pt.x + cos(theta) * rhs.pt.y;
     theta = theta + rhs.theta;
     return *this;
 }

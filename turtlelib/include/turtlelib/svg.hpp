@@ -32,7 +32,7 @@ namespace turtlelib
         // void DRAW_LINE(Point2D pt1, Point2D pt2, std::string color = "black", double width = 1.0);
 
         /// \brief Create a line on the svg
-        void DRAW(turtlelib::Point2D pt1, turtlelib::Point2D pt2, std::string color);
+        void DRAW(turtlelib::Point2D head, turtlelib::Point2D tail, std::string color);
 
         /// \brief Create a coordinate frame
         void DRAW(turtlelib::Transform2D tf);
