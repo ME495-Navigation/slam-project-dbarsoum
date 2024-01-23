@@ -35,62 +35,6 @@ TEST_CASE("Test operator>>", "[se2d_operator>>]")
 }
 
 
-
-// TEST_CASE("Test operator()", "[operator]")
-// {
-//     // test the 2D point operator
-//     turtlelib::Point2D pt = {1.0, 2.0};
-//     // turtlelib::Transform2D tm{{pt}, 1.0};
-//     tm = turtlelib::Transform2D::operator()(pt);
-//     REQUIRE_THAT(pt.x, Catch::Matchers::WithinAbs(1.0, 1e-12));
-//     // REQUIRE_THAT(tm.x, Catch::Matchers::WithinAbs(1.0, 1e-12));
-
-// //     turtlelib::Transform2D tm;
-// //     turtlelib::Point2D pt;
-// //     pt.x = 1.0;
-// //     pt.y = 2.0;
-// //     turtlelib::Point2D pt2 = tm(pt);
-// //     REQUIRE_THAT(pt2.x, Catch::Matchers::WithinAbs(1.0, 1e-12));
-// //     REQUIRE_THAT(pt2.y, Catch::Matchers::WithinAbs(2.0, 1e-12));
-
-// //     // turtlelib::Point2D pt1;
-// //     // pt1.x = 1.0;
-// //     // pt1.y = 2.0;
-
-// //     // turtlelib::Vector2D v;
-// //     // v.x = 1.0;
-// //     // v.y = 1.0;
-
-// //     // turtlelib::Transform2D tm1(pt1, v);
-// //     // REQUIRE_THAT(tm1.matrix[0][2], Catch::Matchers::WithinAbs(1.0, 1e-12));
-
-// //     // for twist
-// //     turtlelib::Twist2D tw;
-// //     tw.omega = 1.0;
-// //     tw.x = 2.0;
-// //     tw.y = 3.0;
-
-// //     turtlelib::Point2D pt;
-// //     pt.x = 1.0;
-// //     pt.y = 2.0;
-
-// //     turtlelib::Transform2D tm;
-// //     double angle = turtlelib::deg2rad(90);
-// //     tm = turtlelib::Transform2D(pt, angle);
-// //     // tm.matrix[0][0] = cos(angle);
-// //     // tm.matrix[0][1] = -sin(angle);
-// //     // tm.matrix[1][0] = sin(angle);
-// //     // tm.matrix[1][1] = cos(angle);
-// //     // tm.matrix[0][2] = pt.x;
-// //     // tm.matrix[1][2] = pt.y;
-
-// //     turtlelib::Twist2D tw2 = tm(tw);
-// //     REQUIRE_THAT(tw2.x, Catch::Matchers::WithinAbs(1.0, 1e-12));
-// //     REQUIRE_THAT(tw2.x, Catch::Matchers::WithinAbs(-1.0, 1e-12));
-// //     REQUIRE_THAT(tw2.y, Catch::Matchers::WithinAbs(0.0, 1e-12));
-
-// }
-
 TEST_CASE("operator()", "[operator_pt]")
 {
     double test_rot1 = turtlelib::PI/2.0;
