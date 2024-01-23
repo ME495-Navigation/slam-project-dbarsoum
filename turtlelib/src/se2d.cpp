@@ -78,8 +78,8 @@ turtlelib::Point2D turtlelib::Transform2D::operator()(turtlelib::Point2D p) cons
 turtlelib::Vector2D turtlelib::Transform2D::operator()(turtlelib::Vector2D v) const
 {
     turtlelib::Vector2D newVector;
-    newVector.x = cos(theta) * v.x - sin(theta) * v.y + pt.x;
-    newVector.y = sin(theta) * v.x + cos(theta) * v.y + pt.y;
+    newVector.x = cos(theta) * v.x - sin(theta) * v.y;
+    newVector.y = sin(theta) * v.x + cos(theta) * v.y;
     return newVector;
 }
 
@@ -88,8 +88,8 @@ turtlelib::Twist2D turtlelib::Transform2D::operator()(turtlelib::Twist2D v) cons
 {
     turtlelib::Twist2D newTwist;
     newTwist.omega = v.omega;
-    newTwist.x = pt.x* v.omega + cos(theta) * v.x - sin(theta) * v.y;
-    newTwist.y = -pt.y * v.omega + sin(theta) * v.x + cos(theta) * v.y;
+    newTwist.x = pt.y* v.omega + cos(theta) * v.x - sin(theta) * v.y;
+    newTwist.y = -pt.x * v.omega + sin(theta) * v.x + cos(theta) * v.y;
     return newTwist;
 }
 
@@ -97,11 +97,11 @@ turtlelib::Twist2D turtlelib::Transform2D::operator()(turtlelib::Twist2D v) cons
 /// \return the inverse transformation.
 turtlelib::Transform2D turtlelib::Transform2D::inv() const
 {
-    turtlelib::Transform2D inverse;
-    inverse.theta = -theta;
-    inverse.pt.x = -cos(theta) * pt.x - sin(theta) * pt.y;
-    inverse.pt.y = sin(theta) * pt.x - cos(theta) * pt.y;
-    return inverse;
+    turtlelib::Transform2D Tinv;
+    Tinv.theta = -theta;
+    Tinv.pt.x = -cos(theta) * pt.x - sin(theta) * pt.y;
+    Tinv.pt.y = sin(theta) * pt.x - cos(theta) * pt.y;
+    return Tinv;
     
 }
 
@@ -111,11 +111,12 @@ turtlelib::Transform2D turtlelib::Transform2D::inv() const
 /// \return a reference to the newly transformed operator
 turtlelib::Transform2D & turtlelib::Transform2D::operator*=(const turtlelib::Transform2D & rhs)
 {
-    turtlelib::Transform2D newTransform;
-    newTransform.theta = theta + rhs.theta;
-    newTransform.pt.x = cos(theta) * rhs.pt.x - sin(theta) * rhs.pt.y + pt.x;
-    newTransform.pt.y = sin(theta) * rhs.pt.x + cos(theta) * rhs.pt.y + pt.y;
-    return newTransform;
+    pt.x = cos(theta) * rhs.pt.x - sin(theta) * rhs.pt.y + pt.x ;
+    pt.y = sin(theta) * rhs.pt.x + cos(theta) * rhs.pt.y + pt.y;
+    // pt.x = cos(theta) * rhs.pt.x - sin(theta) * rhs.pt.y;
+    // pt.y = sin(theta) * rhs.pt.x + cos(theta) * rhs.pt.y;
+    theta = theta + rhs.theta;
+    return *this;
 }
 
 /// \brief the translational component of the transform
@@ -135,38 +136,29 @@ double turtlelib::Transform2D::rotation() const
     return theta;
 }
 
-// /// \brief should print a human readable version of the transform:
-// /// An example output:
-// /// deg: 90 x: 3 y: 5
-// /// \param os - an output stream
-// /// \param tf - the transform to print
-// std::ostream & turtlelib::operator<<(std::ostream & os, const Transform2D::Transform2D & tf)
-// {
-//     os << "deg: " << turtlelib::rad2deg(tf.theta) << " x: " << tf.pt.x << " y: " << tf.pt.y;
-//     return os;
-// }
+/// \brief should print a human readable version of the transform:
+/// An example output:
+/// deg: 90 x: 3 y: 5
+/// \param os - an output stream
+/// \param tf - the transform to print
+std::ostream & turtlelib::operator<<(std::ostream & os, const Transform2D & tf)
+{
+    os << "deg: " << turtlelib::rad2deg(tf.rotation()) << " x: " << tf.translation().x << " y: " << tf.translation().y;
+    return os;
+}
 
-// /// \brief Read a transformation from stdin
-// /// Should be able to read input either as output by operator<< or
-// /// as 3 numbers (degrees, dx, dy) separated by spaces or newlines
-// std::istream & turtlelib::Transform2D::operator>>(std::istream & is, Transform2D::Transform2D & tf)
-// {
-//     turtlelib::Vector2D v;
-//     double omega;
-//     turtlelib::Twist2D tf(omega, v);
-//     char c;
-//     is >> c;
-//     if (c == '[')
-//     {
-//         is >> tf.theta >> tf.pt.x >> tf.pt.y >> c;
-//     }
-//     else
-//     {
-//         is.putback(c);
-//         is >> tf.theta >> tf.pt.x >> tf.pt.y;
-//     }
-//     return is;
-// }
+/// \brief Read a transformation from stdin
+/// Should be able to read input either as output by operator<< or
+/// as 3 numbers (degrees, dx, dy) separated by spaces or newlines
+std::istream & turtlelib::operator>>(std::istream & is, Transform2D & tf)
+{
+    turtlelib::Vector2D v;
+    double omega;
+    is >> omega >> v.x >> v.y;
+    omega = turtlelib::deg2rad(omega);
+    tf = turtlelib::Transform2D(v, omega);
+    return is;
+}
 
 /// \brief multiply two transforms together, returning their composition
 /// \param lhs - the left hand operand
