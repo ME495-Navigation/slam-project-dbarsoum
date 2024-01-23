@@ -12,13 +12,12 @@
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
-  <!-- COME BACK: package has exec_depend for packages used in its launchfiles -->
+  <!-- package has exec_depend for packages used in its launchfiles -->
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>urdf</exec_depend>
   <exec_depend>joint_state_publisher</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>rviz2</exec_depend>
-
 
   <export>
     <build_type>ament_cmake</build_type>
