@@ -1,6 +1,6 @@
 # Nuturtle Description
 URDF files for Nuturtle <Name Your Robot>
-* `ros2 launch nuturtle_description load_one.launch.py color:=<color>` to see the robot in rviz.
+* `ros2 launch nuturtle_description load_one.launch.py` to see the robot in rviz.
 * `ros2 launch nuturtle_description load_all.launch.xml` to see four copies of the robot in rviz.
 
 * Image of the four copies of the turtlebot3 in rivz at specified locations.
