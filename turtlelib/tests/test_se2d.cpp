@@ -64,7 +64,7 @@ TEST_CASE("operator()", "[operator_vec]")
     vec2.y = 1.0;
     turtlelib::Vector2D vec3 = T_ab(vec2);
     REQUIRE_THAT(vec3.x, Catch::Matchers::WithinAbs(-1.0, 1e-12));
-    REQUIRE_THAT(vec3.y, Catch::Matchers::WithinAbs(2.0, 1e-12));
+    REQUIRE_THAT(vec3.y, Catch::Matchers::WithinAbs(1.0, 1e-12));
 }
 
 TEST_CASE("operator()", "[operator_twist]")
@@ -81,8 +81,8 @@ TEST_CASE("operator()", "[operator_twist]")
     tw.y = 1.0;
     turtlelib::Twist2D tw2 = T_ab(tw);
     REQUIRE_THAT(tw2.omega, Catch::Matchers::WithinAbs(1.0, 1e-12));
-    REQUIRE_THAT(tw2.x, Catch::Matchers::WithinAbs(-1.0, 1e-12));
-    REQUIRE_THAT(tw2.y, Catch::Matchers::WithinAbs(0.0, 1e-12));
+    REQUIRE_THAT(tw2.x, Catch::Matchers::WithinAbs(0.0, 1e-12));
+    REQUIRE_THAT(tw2.y, Catch::Matchers::WithinAbs(1.0, 1e-12));
 }
 
 

@@ -134,7 +134,7 @@ int main()
     cin >> V_b;
 
     /// compute the twist in frame a
-    V_a = T_ba(V_b);
+    V_a = T_ab(V_b);
     head.x = V_a.x;
     head.y = V_a.y;
     svg.DRAW(head, tail, color_purple);

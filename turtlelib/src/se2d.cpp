@@ -78,8 +78,8 @@ turtlelib::Point2D turtlelib::Transform2D::operator()(turtlelib::Point2D p) cons
 turtlelib::Vector2D turtlelib::Transform2D::operator()(turtlelib::Vector2D v) const
 {
     turtlelib::Vector2D newVector;
-    newVector.x = cos(theta) * v.x - sin(theta) * v.y + pt.x;
-    newVector.y = sin(theta) * v.x + cos(theta) * v.y + pt.y;
+    newVector.x = cos(theta) * v.x - sin(theta) * v.y; // + pt.x;
+    newVector.y = sin(theta) * v.x + cos(theta) * v.y; // + pt.y;
     return newVector;
 }
 
@@ -88,8 +88,10 @@ turtlelib::Twist2D turtlelib::Transform2D::operator()(turtlelib::Twist2D v) cons
 {
     turtlelib::Twist2D newTwist;
     newTwist.omega = v.omega;
-    newTwist.x = pt.x* v.omega + cos(theta) * v.x - sin(theta) * v.y;
-    newTwist.y = -pt.y * v.omega + sin(theta) * v.x + cos(theta) * v.y;
+    // newTwist.x = pt.x* v.omega + cos(theta) * v.x - sin(theta) * v.y;
+    // newTwist.y = -pt.y * v.omega + sin(theta) * v.x + cos(theta) * v.y;
+    newTwist.x = pt.y* v.omega + cos(theta) * v.x - sin(theta) * v.y;
+    newTwist.y = -pt.x * v.omega + sin(theta) * v.x + cos(theta) * v.y;
     return newTwist;
 }
 
