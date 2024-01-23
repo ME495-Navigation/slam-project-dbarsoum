@@ -20,18 +20,3 @@ URDF files for Nuturtle <Name Your Robot>
 * `<Command To Show Arguments of load_all.launch.py>`
   `<Output of the Above Command>`
 
-class Matt
-{
-  Matt(Todd x); // this is implicit
-}
-//can do this then
-void f(Matt e); 
-f(Matt(Todd()));
-f(Todd());
-
-but if explcit: -- lets bugs in
-class Matt
-{
-  explicit Matt(Todd x);
-}
-//cannot do: f(Todd())

@@ -144,18 +144,16 @@ TEST_CASE("operator<<", "[operator<<]")
 // std::istream & operator>>(std::istream & is, Transform2D & tf);
 TEST_CASE("operator>>", "[operator>>]")
 {
-    turtlelib::Vector2D v;
-    v.x = 1.0;
-    v.y = 2.0;
-    double theta = turtlelib::deg2rad(90.0);
-
-    turtlelib::Transform2D T = turtlelib::Transform2D(v, theta);
+    turtlelib::Transform2D T;
     std::stringstream ss;
-    ss << T;
+    ss << "90 1 2";
     ss >> T;
-    REQUIRE_THAT(T.rotation(), Catch::Matchers::WithinAbs(theta, 1.0e-12));
-    REQUIRE_THAT(T.translation().x, Catch::Matchers::WithinAbs(v.x, 1.0e-12));
-    REQUIRE_THAT(T.translation().y, Catch::Matchers::WithinAbs(v.y, 1.0e-12));
+
+    auto trans = T.translation();
+    auto rot = T.rotation();
+    REQUIRE_THAT(trans.x, Catch::Matchers::WithinAbs(1.0, 1.0e-12));
+    REQUIRE_THAT(trans.y, Catch::Matchers::WithinAbs(2.0, 1.0e-12));
+    REQUIRE_THAT(rot, Catch::Matchers::WithinAbs(turtlelib::deg2rad(90.0), 1.0e-12));
 }
 
 // Transform2D operator*(Transform2D lhs, const Transform2D & rhs);
