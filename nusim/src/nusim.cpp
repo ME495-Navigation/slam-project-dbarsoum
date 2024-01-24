@@ -17,12 +17,10 @@
 
 using namespace std::chrono_literals;
 
-class Nusim : public rclcpp::Node
-{
+class Nusim : public rclcpp::Node{
     public:
         Nusim()
-        : Node("nusim")
-        {
+        : Node("nusim"){
             RCLCPP_INFO(this->get_logger(), "Nusim has been started.");
             /// declares a parameter
             this->declare_parameter("rate", 200.0);
@@ -73,8 +71,7 @@ class Nusim : public rclcpp::Node
             std::chrono::duration<double>(1.0/rate_), std::bind(&Nusim::timer_callback, this));
         }
     private:
-        void timer_callback()
-        {
+        void timer_callback(){
             /// publishes hello world at given rate
             auto message = std_msgs::msg::UInt64();
             /// need the timestep in ms
@@ -115,8 +112,7 @@ class Nusim : public rclcpp::Node
         }
 
         void reset_callback(const std::shared_ptr<std_srvs::srv::Empty::Request>,
-                            std::shared_ptr<std_srvs::srv::Empty::Response>)
-        {
+                            std::shared_ptr<std_srvs::srv::Empty::Response>){
             timestep_ = 0;
             x0_ = 0.0;
             y0_ = 0.0;
@@ -126,8 +122,7 @@ class Nusim : public rclcpp::Node
         }
 
         void teleport_callback(const std::shared_ptr<nusim::srv::Teleport::Request> request,
-                               std::shared_ptr<nusim::srv::Teleport::Response>)
-        {
+                               std::shared_ptr<nusim::srv::Teleport::Response>){
             RCLCPP_INFO(this->get_logger(), "Teleporting turtle to (%f, %f, %f).", request->x, request->y, request->theta);
             // geometry_msgs::msg::TransformStamped t_;
             x0_ = request->x;
@@ -154,8 +149,7 @@ class Nusim : public rclcpp::Node
             tf_broadcaster_->sendTransform(t_);
         }
 
-        void addWall(visualization_msgs::msg::MarkerArray &marker_array, double x, double y, const std::string &name, int id)
-        {
+        void addWall(visualization_msgs::msg::MarkerArray &marker_array, double x, double y, const std::string &name, int id){
             visualization_msgs::msg::Marker marker;
             marker.header.frame_id = "nusim/world";
             marker.header.stamp = this->get_clock()->now();
@@ -166,7 +160,7 @@ class Nusim : public rclcpp::Node
             marker.pose.position.x = x; 
             marker.pose.position.y = y;
             marker.pose.position.z = 0.0;
-            if (name == "right_wall" || name == "left_wall") {
+            if (name == "right_wall" || name == "left_wall"){
                 // green -- vertical walls -- no rotation needed
                 marker.pose.orientation.x = 1.0;
                 marker.pose.orientation.y = 0.0;
@@ -199,8 +193,7 @@ class Nusim : public rclcpp::Node
         }
 
         // create cylindrical obstacles are given locations
-        void addObstacle(visualization_msgs::msg::MarkerArray &marker_array, double x, double y, double r, const std::string &name, int id)
-        {
+        void addObstacle(visualization_msgs::msg::MarkerArray &marker_array, double x, double y, double r, const std::string &name, int id){
             visualization_msgs::msg::Marker marker;
             marker.header.frame_id = "nusim/world";
             marker.header.stamp = this->get_clock()->now();
@@ -246,8 +239,7 @@ class Nusim : public rclcpp::Node
         std::vector<double> obstacles_r_;
 };
 
-int main(int argc, char ** argv)
-{
+int main(int argc, char ** argv){
   rclcpp::init(argc, argv);
   rclcpp::spin(std::make_shared<Nusim>());
   rclcpp::shutdown();

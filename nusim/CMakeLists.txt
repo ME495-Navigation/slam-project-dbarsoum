@@ -48,13 +48,11 @@ if(BUILD_TESTING)
 endif()
 
 install(TARGETS
-    nusim_node
-  DESTINATION lib/${PROJECT_NAME}
-  )
+  nusim_node
+  DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch config srv
-  DESTINATION share/${PROJECT_NAME}/
-)
+  DESTINATION share/${PROJECT_NAME}/)
 
 ament_export_dependencies(rosidl_default_runtime)
 ament_package()
