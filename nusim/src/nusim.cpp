@@ -15,6 +15,7 @@
 #include "visualization_msgs/msg/marker.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 
+
 using namespace std::chrono_literals;
 
 class Nusim : public rclcpp::Node{
@@ -47,8 +48,7 @@ class Nusim : public rclcpp::Node{
             obstacles_r_ = this->get_parameter("obstacles/r").as_double_array();
             if (obstacles_x_.size() != obstacles_y_.size() || obstacles_x_.size() != obstacles_r_.size()) {
                 RCLCPP_ERROR(this->get_logger(), "Obstacles are not the same length.");
-                rclcpp::shutdown();
-            }
+                rclcpp::shutdown();}
 
             RCLCPP_INFO(this->get_logger(), "Teleporting turtle to (%f, %f, %f).", x0_ , y0_, theta0_);
 
@@ -68,8 +68,7 @@ class Nusim : public rclcpp::Node{
             
             /// timers
             timer_ = this->create_wall_timer(
-            std::chrono::duration<double>(1.0/rate_), std::bind(&Nusim::timer_callback, this));
-        }
+            std::chrono::duration<double>(1.0/rate_), std::bind(&Nusim::timer_callback, this));}
     private:
         void timer_callback(){
             /// publishes hello world at given rate
@@ -106,10 +105,8 @@ class Nusim : public rclcpp::Node{
             // Publish the obstacles
             visualization_msgs::msg::MarkerArray obstacle_array;
             for (int i = 0; i < int(obstacles_x_.size()) ; i++) {
-                addObstacle(obstacle_array, obstacles_x_[i], obstacles_y_[i], obstacles_r_[i], "obstacle", i);
-            }
-            obstacle_pub_->publish(obstacle_array);
-        }
+                addObstacle(obstacle_array, obstacles_x_[i], obstacles_y_[i], obstacles_r_[i], "obstacle", i);}
+            obstacle_pub_->publish(obstacle_array);}
 
         void reset_callback(const std::shared_ptr<std_srvs::srv::Empty::Request>,
                             std::shared_ptr<std_srvs::srv::Empty::Response>){
@@ -118,8 +115,7 @@ class Nusim : public rclcpp::Node{
             y0_ = 0.0;
             theta0_ = 0.0;
 
-            RCLCPP_INFO(this->get_logger(), "Resetting timestep to 0.");
-        }
+            RCLCPP_INFO(this->get_logger(), "Resetting timestep to 0.");}
 
         void teleport_callback(const std::shared_ptr<nusim::srv::Teleport::Request> request,
                                std::shared_ptr<nusim::srv::Teleport::Response>){
@@ -146,8 +142,7 @@ class Nusim : public rclcpp::Node{
             t_.transform.rotation.w = q.w();
 
             // Send the transformation
-            tf_broadcaster_->sendTransform(t_);
-        }
+            tf_broadcaster_->sendTransform(t_);}
 
         void addWall(visualization_msgs::msg::MarkerArray &marker_array, double x, double y, const std::string &name, int id){
             visualization_msgs::msg::Marker marker;
@@ -172,8 +167,7 @@ class Nusim : public rclcpp::Node{
                 marker.color.a = 1.0;
                 marker.scale.x = arena_x_length_;
                 marker.scale.y = 0.1;
-                marker.scale.z = 0.25;
-                } 
+                marker.scale.z = 0.25;} 
             else {
                 // blue -- top and bottom walls -- needed rotation
                 marker.pose.orientation.x = 0.0;
@@ -186,11 +180,9 @@ class Nusim : public rclcpp::Node{
                 marker.color.a = 1.0;
                 marker.scale.x = 0.1;
                 marker.scale.y = arena_y_length_;
-                marker.scale.z = 0.25;
-                }
+                marker.scale.z = 0.25;}
             
-            marker_array.markers.push_back(marker);
-        }
+            marker_array.markers.push_back(marker);}
 
         // create cylindrical obstacles are given locations
         void addObstacle(visualization_msgs::msg::MarkerArray &marker_array, double x, double y, double r, const std::string &name, int id){
@@ -216,8 +208,8 @@ class Nusim : public rclcpp::Node{
             marker.scale.y = r;
             marker.scale.z = 0.25;
             
-            marker_array.markers.push_back(marker);
-        }
+            marker_array.markers.push_back(marker);}
+
         rclcpp::TimerBase::SharedPtr timer_;
         rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr publisher_;
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
@@ -236,12 +228,10 @@ class Nusim : public rclcpp::Node{
         double arena_y_length_;
         std::vector<double> obstacles_x_;
         std::vector<double> obstacles_y_;
-        std::vector<double> obstacles_r_;
-};
+        std::vector<double> obstacles_r_;};
 
 int main(int argc, char ** argv){
   rclcpp::init(argc, argv);
   rclcpp::spin(std::make_shared<Nusim>());
   rclcpp::shutdown();
-  return 0;
-}
+  return 0;}
