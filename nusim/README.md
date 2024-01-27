@@ -25,4 +25,4 @@ image of the example coordinates:
 
 ![nusim_teleport](https://github.com/ME495-Navigation/slam-project-dbarsoum/assets/117933155/ac74a3ae-b33d-43bd-943b-39775075037e)
 
-* to reset to the location of the red robot specified in `basic_world.yaml`, run `ros2 service call /nusim/reset std_srvs/srv/Empty "{}"`.
+* to reset to the location of the red robot specified in `basic_world.yaml`, run `ros2 service call /nusim_node/reset std_srvs/srv/Empty "{}"`.
