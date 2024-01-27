@@ -27,23 +27,23 @@ std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Twist2D & tw)
 
 turtlelib::Transform2D::Transform2D()
 {
-    theta = 0;
-    pt.x = 0;
-    pt.y = 0;
+    theta = 0.0;
+    pt.x = 0.0;
+    pt.y = 0.0;
 }
 
 turtlelib::Transform2D::Transform2D(Vector2D trans)
 {
-    theta = 0;
+    theta = 0.0;
     pt.x = trans.x;
-    pt.x = trans.y;
+    pt.y = trans.y;
 }
 
 turtlelib::Transform2D::Transform2D(double radians)
 {
     theta = radians;
-    pt.x = 0;
-    pt.y = 0;
+    pt.x = 0.0;
+    pt.y = 0.0;
 }
 
 turtlelib::Transform2D::Transform2D(Vector2D trans, double radians)
@@ -102,10 +102,10 @@ turtlelib::Transform2D & turtlelib::Transform2D::operator*=(const turtlelib::Tra
 
 turtlelib::Vector2D turtlelib::Transform2D::translation() const
 {
-    turtlelib::Vector2D v;
-    v.x = pt.x;
-    v.y = pt.y;
-    return v;
+    // turtlelib::Vector2D v;
+    // v.x = pt.x;
+    // v.y = pt.y;
+    return pt;
 }
 
 double turtlelib::Transform2D::rotation() const
@@ -133,4 +133,44 @@ turtlelib::Transform2D turtlelib::operator*(turtlelib::Transform2D lhs, const tu
 {
     lhs *= rhs;
     return lhs;
+}
+
+turtlelib::Transform2D turtlelib::integrate_twist(const turtlelib::Twist2D & tw)
+{
+    turtlelib::Transform2D Tbbp; // Tbb'
+    // turtlelib::Vector2D v;
+
+    // if twist has zero angular displacement
+    if (turtlelib::almost_equal(tw.omega, 0.0, 1.0e-12)) 
+    {
+        turtlelib::Vector2D v;
+        v.x = tw.x;
+        v.y = tw.y;
+        Tbbp = turtlelib::Transform2D(v);
+        // Tbbp = turtlelib::Transform2D();
+
+    }
+    // if twist has zero linear displacement
+    else if (turtlelib::almost_equal(tw.x, 0.0, 1.0e-12) && turtlelib::almost_equal(tw.y, 0.0, 1.0e-12))
+    {   
+        Tbbp = turtlelib::Transform2D(tw.omega);
+    }
+    // if twist has nonzero angular displacement
+    else
+    {
+        // Tbbp = turtlelib::Transform2D();
+        turtlelib::Transform2D Tsb;
+        turtlelib::Vector2D v;
+        v.x = tw.y / tw.omega;
+        v.y = -tw.x / tw.omega;
+        Tsb = turtlelib::Transform2D(v);
+
+        turtlelib::Transform2D Tssp;
+        Tssp = turtlelib::Transform2D(tw.omega);
+
+        // turtlelib::Transform2D Tbbp;
+        Tbbp = Tsb.inv() * Tssp * Tsb;
+    }
+ 
+    return Tbbp;
 }
