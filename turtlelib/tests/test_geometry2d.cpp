@@ -112,4 +112,75 @@ TEST_CASE("Test operator+", "[operator+]")
     REQUIRE_THAT(p2.y, Catch::Matchers::WithinAbs(2.0, 1e-12));
 }
 
+TEST_CASE("Test operator+", "[operator+_vec]")
+{
+    turtlelib::Vector2D v1;
+    v1.x = 1.0;
+    v1.y = 1.0;
+    turtlelib::Vector2D v2;
+    v2.x = 1.0;
+    v2.y = 1.0;
+    v1 += v2;
+    REQUIRE_THAT(v1.x, Catch::Matchers::WithinAbs(2.0, 1e-12));
+    REQUIRE_THAT(v1.y, Catch::Matchers::WithinAbs(2.0, 1e-12));
 
+}
+
+TEST_CASE("Test operator-", "[operator-_vec]")
+{
+    turtlelib::Vector2D v1;
+    v1.x = 1.0;
+    v1.y = 1.0;
+    turtlelib::Vector2D v2;
+    v2.x = 1.0;
+    v2.y = 1.0;
+    v1 -= v2;
+    REQUIRE_THAT(v1.x, Catch::Matchers::WithinAbs(0.0, 1e-12));
+    REQUIRE_THAT(v1.y, Catch::Matchers::WithinAbs(0.0, 1e-12));
+}
+
+TEST_CASE("Test operator*", "[operator*]")
+{
+    turtlelib::Vector2D v;
+    double s = 2.0;
+    v.x = 2.0;
+    v.y = 2.0;
+    v *= s;
+    REQUIRE_THAT(v.x, Catch::Matchers::WithinAbs(4.0, 1e-12));
+    REQUIRE_THAT(v.y, Catch::Matchers::WithinAbs(4.0, 1e-12));
+}
+
+TEST_CASE("Test dot", "[dot]")
+{
+    turtlelib::Vector2D v1;
+    turtlelib::Vector2D v2;
+    v1.x = 1.0;
+    v1.y = 1.0;
+    v2.x = 1.0;
+    v2.y = 1.0;
+    double result = turtlelib::dot(v1, v2);
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(2.0, 1e-12));
+}
+
+TEST_CASE("Test magnitude", "[magnitude]")
+{
+    turtlelib::Vector2D v;
+    v.x = 1.0;
+    v.y = 1.0;
+    double result = turtlelib::magnitude(v);
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(sqrt(2.0), 1e-12));
+}
+
+TEST_CASE("Test angle", "[angle]")
+{
+    turtlelib::Vector2D v1;
+    turtlelib::Vector2D v2;
+    v1.x = 1.0;
+    v1.y = 0.0;
+    v2.x = 0.0;
+    v2.y = 1.0;
+    double result = turtlelib::angle(v1, v2);
+    double result_deg = turtlelib::rad2deg(result);
+    REQUIRE_THAT(result, Catch::Matchers::WithinAbs(turtlelib::PI/2.0, 1e-12));
+    REQUIRE_THAT(result_deg, Catch::Matchers::WithinAbs(90.0, 1e-12));
+}

@@ -143,6 +143,67 @@ namespace turtlelib
     /// peek looks at the next unprocessed character in the buffer without removing it
     /// get removes the next unprocessed character from the buffer.
     std::istream & operator>>(std::istream & is, Vector2D & v);
+
+    /// HW 2 ///
+    /// \brief adding a vector to itself plus another vector yields a new vector
+    /// \param v1 - the first vector
+    /// \param v2 - the second vector
+    /// \return a vector that is the sum of v1 and v1
+    Vector2D operator+=(Vector2D & v1 , const Vector2D & v2);
+
+    /// \brief adding a vector to a vector yields a new vector
+    /// \param v1 - the first vector
+    /// \param v2 - the second vector
+    /// \return a vector that is the sum of v1 and v2
+    Vector2D operator+(Vector2D & v1, const Vector2D & v2);
+
+    /// \brief subtracting a vector from itself plus another vector yields a new vector
+    /// \param v1 - the first vector
+    /// \param v2 - the second vector
+    /// \return a vector that is the difference of v1 and v2
+    Vector2D operator-=(Vector2D & v1, const Vector2D & v2);
+
+    /// \brief subtracting a vector from a vector yields a new vector
+    /// \param v1 - the first vector
+    /// \param v2 - the second vector
+    /// \return a vector that is the difference of v1 and v2
+    Vector2D operator-(Vector2D & v1, const Vector2D & v2);
+
+    /// \brief multiplying a vector by itself and a scalar yields a new vector
+    /// \param v - the vector
+    /// \param s - the scalar
+    /// \return a vector that is the product of v and s
+    Vector2D operator*=(Vector2D & v, double s);
+
+    /// \brief multiplying a vector by a scalar yields a new vector
+    /// \param v - the vector
+    /// \param s - the scalar
+    /// \return a vector that is the product of v and s 
+    Vector2D operator*(Vector2D & v, double s);
+
+    /// \brief multiplying a vector by a scalar yields a new vector
+    /// \param s - the scalar
+    /// \param v - the vector
+    /// \return a vector that is the product of v and s
+    Vector2D operator*(double s, Vector2D & v);
+
+    /// \brief compute the dot product of two vectors
+    /// \param v1 - the first vector
+    /// \param v2 - the second vector
+    /// \return the dot product of v1 and v2
+    double dot(const Vector2D & v1, const Vector2D & v2);
+
+    /// \brief compute the magnitude of the vector
+    /// \param v - the vector
+    /// \return the magnitude of v
+    double magnitude(const Vector2D & v);
+
+    /// \brief compute the angle between two vectors
+    /// \param v1 - the first vector
+    /// \param v2 - the second vector
+    /// \return the angle between v1 and v2
+    double angle(const Vector2D & v1, const Vector2D & v2);
+
 }
 
 #endif
