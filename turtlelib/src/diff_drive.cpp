@@ -62,19 +62,18 @@ void DiffDrive::update_configuration(WheelPositions_phi new_wheel_positions)
     wheel_positions_ = new_wheel_positions;
 }
 
-WheelPositions_phi compute_wheel_velocities(Twist2D twist)
+WheelPositions_phi DiffDrive::compute_wheel_velocities(Twist2D twist)
 {
-    double wheel_track_;
-    double wheel_radius_;
-    if (almost_equal(twist.omega, 0.0, 1.0e-12))
+    WheelPositions_phi wheel_velocities;
+
+    if (almost_equal(twist.y, 0.0, 1.0e-12))
     {
-        WheelPositions_phi wheel_velocities;
         wheel_velocities.phi_left = (twist.x - (wheel_track_ * twist.omega / 2.0)) / wheel_radius_;
         wheel_velocities.phi_right = (twist.x + (wheel_track_ * twist.omega / 2.0)) / wheel_radius_;
-        return wheel_velocities;
     }
     else
     {
         throw std::logic_error ("twist cannot be accomplished");
     }
+    return wheel_velocities;
 }
