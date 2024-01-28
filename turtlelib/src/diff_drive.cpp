@@ -58,7 +58,6 @@ void DiffDrive::update_configuration(WheelPositions_phi new_wheel_positions)
     configuration_.theta_ += delta_q.theta_;
     configuration_.x_ += delta_q.x_;
     configuration_.y_ += delta_q.y_;
-
     wheel_positions_ = new_wheel_positions;
 }
 
