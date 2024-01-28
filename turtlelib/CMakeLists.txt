@@ -8,7 +8,7 @@ project(turtlelib)
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
-add_library(turtlelib src/geometry2d.cpp src/se2d.cpp src/svg.cpp)
+add_library(turtlelib src/geometry2d.cpp src/se2d.cpp src/svg.cpp src/diff_drive.cpp)
 
 target_include_directories(turtlelib
     PUBLIC
@@ -54,7 +54,7 @@ if(BUILD_TESTING)
     find_package(Catch2 3 REQUIRED)
 
     # A test is just an executable that is linked against the unit testing library
-    add_executable (my_test_exe tests/test_geometry2d.cpp tests/test_se2d.cpp tests/test_svg.cpp)
+    add_executable (my_test_exe tests/test_geometry2d.cpp tests/test_se2d.cpp tests/test_svg.cpp tests/test_diff_drive.cpp)
 
     target_link_libraries(my_test_exe Catch2::Catch2WithMain turtlelib)
 
