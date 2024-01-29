@@ -17,6 +17,8 @@
   <depend>tf2</depend>
   <depend>visualization_msgs</depend>
   <depend>turtlelib</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
   
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

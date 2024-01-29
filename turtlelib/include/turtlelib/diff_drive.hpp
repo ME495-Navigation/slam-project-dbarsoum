@@ -64,6 +64,9 @@ namespace turtlelib
             return configuration_;
         }
 
+        /// \brief 
+        void set_configuration(Configuration_q configuration);
+
     private:
         double wheel_track_;
         double wheel_radius_;

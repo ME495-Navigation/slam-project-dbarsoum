@@ -76,3 +76,8 @@ WheelPositions_phi DiffDrive::compute_wheel_velocities(Twist2D twist)
     }
     return wheel_velocities;
 }
+
+void DiffDrive::set_configuration(Configuration_q configuration)
+{
+    configuration_ = configuration;
+}

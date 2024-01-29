@@ -25,7 +25,15 @@ ${srv_files}
 )
 
 add_executable(nusim_node src/nusim.cpp)
-ament_target_dependencies(nusim_node rclcpp std_msgs std_srvs nuturtle_description geometry_msgs tf2 tf2_ros visualization_msgs)
+ament_target_dependencies(nusim_node
+  rclcpp
+  std_msgs
+  std_srvs
+  nuturtle_description
+  geometry_msgs
+  tf2
+  tf2_ros
+  visualization_msgs)
 
 rosidl_get_typesupport_target(cpp_typesupport_target
 ${PROJECT_NAME} rosidl_typesupport_cpp)

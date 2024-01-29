@@ -1,4 +1,4 @@
-Worked with: Megan Black, Fiona Neylon, Ananya
+Worked with: Megan Black, Fiona Neylon, Ananya, Courtney
 
 Used for Markers in Task C:
 https://docs.ros.org/en/diamondback/api/rviz/html/marker__test_8cpp_source.html
