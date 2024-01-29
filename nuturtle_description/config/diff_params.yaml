@@ -4,5 +4,5 @@
     track_width: 0.160  # m (160 mm)
     motor_cmd_max: 265  # [-motor_cmd_max, motor_cmd_max] is the range of motor commands
     motor_cmd_per_rad_sec: 1  # 1 mcu = 0.024 rad/s
-    encoder_ticks_per_rad: 4096  # 4096 ticks
+    encoder_ticks_per_rad: 651.898646904  # 4096 ticks = 2pi rad
     collision_radius: 0.11

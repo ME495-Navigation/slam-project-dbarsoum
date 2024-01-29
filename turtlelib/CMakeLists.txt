@@ -24,14 +24,14 @@ add_executable(frame_main src/frame_main.cpp)
 target_link_libraries(frame_main turtlelib)
 
 # install the include files by copying the whole include directory
-install(DIRECTORY include DESTINATION include)
+install(DIRECTORY include/ DESTINATION include)
 
-install(TARGETS ${PROJECT_NAME} EXPORT project_name-targets)
+install(TARGETS turtlelib EXPORT turtlelib-targets)
 
-install(EXPORT project_name-targets
-        FILE project_name-config.cmake
-        NAMESPACE project_name::
-        DESTINATION lib/cmake/${PROJECT_NAME})
+install(EXPORT turtlelib-targets
+        FILE turtlelib-config.cmake
+        NAMESPACE turtlelib::
+        DESTINATION lib/cmake/turtlelib)
 
 find_package(Doxygen)       
 
@@ -54,7 +54,7 @@ if(BUILD_TESTING)
     find_package(Catch2 3 REQUIRED)
 
     # A test is just an executable that is linked against the unit testing library
-    add_executable (my_test_exe tests/test_geometry2d.cpp tests/test_se2d.cpp tests/test_svg.cpp tests/test_diff_drive.cpp)
+    add_executable(my_test_exe tests/test_geometry2d.cpp tests/test_se2d.cpp tests/test_svg.cpp tests/test_diff_drive.cpp)
 
     target_link_libraries(my_test_exe Catch2::Catch2WithMain turtlelib)
 
