@@ -107,6 +107,7 @@ if(BUILD_TESTING)
   ###############
   ## UNIT TEST ##
   ###############
+  # control test
   add_executable(turtle_control_test_node
     test/turtle_control_test.cpp
   )
@@ -141,6 +142,40 @@ if(BUILD_TESTING)
   # This is the launch file that will be used to run the integration test
   install(FILES
     test/turtle_control_test.launch.xml
+    DESTINATION share/${PROJECT_NAME}
+  )
+
+  #### odom test
+  add_executable(turtle_odom_test_node
+    test/turtle_odom_test_node.cpp
+  )
+
+  target_link_libraries(turtle_odom_test_node
+    catch_ros2::catch_ros2_with_main
+  )
+
+  ament_target_dependencies(turtle_odom_test_node
+  rclcpp
+  std_msgs
+  std_srvs
+  nuturtle_description
+  geometry_msgs
+  tf2
+  tf2_ros
+  nuturtlebot_msgs
+  sensor_msgs
+  turtlelib
+  nav_msgs)
+
+  target_link_libraries(turtle_odom_test_node turtlelib::turtlelib "${cpp_typesupport_target}")
+
+  install(TARGETS
+    turtle_odom_test_node
+    DESTINATION lib/${PROJECT_NAME}
+  )
+
+  install(FILES
+    test/turtle_odom_test.launch.xml
     DESTINATION share/${PROJECT_NAME}
   )
 

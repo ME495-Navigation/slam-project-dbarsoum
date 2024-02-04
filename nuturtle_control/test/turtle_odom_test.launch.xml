@@ -15,9 +15,13 @@
     /> -->
 
     <!-- Auxiliary nodes can be run like normal to test integration between nodes -->
-    <node pkg='nuturtle_control' exec='turtle_control_test'>
+    <node pkg='nuturtle_control' exec='turtle_odom_test_node'>
         <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
     </node>
+
+    <!-- joint state publisher -->
+    <node pkg="joint_state_publisher" exec="joint_state_publisher" name="joint_state_publisher"/>
+        <!-- <param name="use_gui" value="false"/> -->
 
     <!--
     catch2_integration_test_node
@@ -29,7 +33,7 @@
     -->
     <catch2_integration_test_node
         pkg='nuturtle_control'
-        exec='turtle_control_test'
+        exec='turtle_odom_test_node'
     >
         <!-- <param name='test_duration' value='$(var test_duration)'/> -->
     </catch2_integration_test_node>
