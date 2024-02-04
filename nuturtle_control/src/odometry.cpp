@@ -25,10 +25,10 @@ public:
   Odometry()
   : Node("Odometry")
   {
-  /// publishes odometry messages and the odometry transform
-  RCLCPP_INFO(this->get_logger(), "odometry has been started.");
+    /// publishes odometry messages and the odometry transform
+    RCLCPP_INFO(this->get_logger(), "odometry has been started.");
 
-  declare_parameter("wheel_radius", -1.0);
+    declare_parameter("wheel_radius", -1.0);
     wheel_radius_ = get_parameter("wheel_radius").as_double();
     // RCLCPP_INFO_STREAM(get_logger(), "wheel radius: " << wheel_radius_);
     if (wheel_radius_ < 0.0) {
@@ -43,55 +43,59 @@ public:
       rclcpp::shutdown();
     }
 
-  /// parameters
-  this->declare_parameter("body_id", std::string(" "));
-  body_id_ = this->get_parameter("body_id").as_string();
-  if (body_id_ == " ") {
-    RCLCPP_ERROR_STREAM(this->get_logger(), "body_id error");
-    rclcpp::shutdown();
+    /// parameters
+    this->declare_parameter("body_id", std::string(" "));
+    body_id_ = this->get_parameter("body_id").as_string();
+    if (body_id_ == " ") {
+      RCLCPP_ERROR_STREAM(this->get_logger(), "body_id error");
+      rclcpp::shutdown();
+    }
+
+    this->declare_parameter("odom_id", std::string("odom"));
+    odom_id_ = this->get_parameter("odom_id").as_string();
+    if (odom_id_ == " ") {
+      RCLCPP_ERROR_STREAM(this->get_logger(), "odom_id error");
+      rclcpp::shutdown();
+    }
+
+    this->declare_parameter("wheel_left", std::string(" "));
+    wheel_left_ = this->get_parameter("wheel_left").as_string();
+    if (wheel_left_ == " ") {
+      RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_left error");
+      rclcpp::shutdown();
+    }
+
+    this->declare_parameter("wheel_right", std::string(" "));
+    wheel_right_ = this->get_parameter("wheel_right").as_string();
+    if (wheel_right_ == " ") {
+      RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_right error");
+      rclcpp::shutdown();
+    }
+
+    /// subscribers
+    joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
+      "joint_states", 10, std::bind(&Odometry::joint_state_callback, this, std::placeholders::_1));
+
+    /// publish odometry messages
+    odometry_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
+
+    /// services
+    service_InitPose_ = this->create_service<nuturtle_control::srv::InitialPose>(
+      "initial_pose",
+      std::bind(
+        &Odometry::initial_pose_callback, this, std::placeholders::_1,
+        std::placeholders::_2));
+
+    /// Initialize the transform broadcaster
+    tf_broadcaster_ =
+      std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+
+    /// timers
+    timer_ = this->create_wall_timer(
+      std::chrono::duration<double>(1.0 / 100.0), std::bind(&Odometry::timer_callback, this));
+
   }
 
-  this->declare_parameter("odom_id", std::string("odom"));
-  odom_id_ = this->get_parameter("odom_id").as_string();
-  if (odom_id_ == " ") {
-    RCLCPP_ERROR_STREAM(this->get_logger(), "odom_id error");
-    rclcpp::shutdown();
-  }
-
-  this->declare_parameter("wheel_left", std::string(" "));
-  wheel_left_ = this->get_parameter("wheel_left").as_string();
-  if (wheel_left_ == " ") {
-    RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_left error");
-    rclcpp::shutdown();
-  }
-
-  this->declare_parameter("wheel_right", std::string(" "));
-  wheel_right_ = this->get_parameter("wheel_right").as_string();
-  if (wheel_right_ == " ") {
-    RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_right error");
-    rclcpp::shutdown();
-  }
-
-  /// subscribers
-  joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-    "joint_states", 10, std::bind(&Odometry::joint_state_callback, this, std::placeholders::_1));
-
-  /// publish odometry messages
-  odometry_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
-
-  /// services
-  service_InitPose_ = this->create_service<nuturtle_control::srv::InitialPose>(
-    "initial_pose", std::bind(&Odometry::initial_pose_callback, this, std::placeholders::_1, std::placeholders::_2));
-
-  /// Initialize the transform broadcaster
-  tf_broadcaster_ =
-    std::make_unique<tf2_ros::TransformBroadcaster>(*this);
-
-  /// timers
-  timer_ = this->create_wall_timer(
-    std::chrono::duration<double>(1.0 / 100.0), std::bind(&Odometry::timer_callback, this));
-
-  }
 private:
   /// timer callback
   void timer_callback()
@@ -102,7 +106,7 @@ private:
   void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
   {
     RCLCPP_INFO_STREAM(this->get_logger(), "joint_state_callback");
-   
+
     turtlelib::WheelPositions_phi wheel_positions;
     wheel_positions.phi_left = msg->position[0];
     wheel_positions.phi_right = msg->position[1];
@@ -177,7 +181,7 @@ private:
     t_.header.stamp = this->get_clock()->now();
     t_.header.frame_id = odom_id_;
     t_.child_frame_id = body_id_;
-    
+
     t_.transform.translation.x = q_diff.x_;
     t_.transform.translation.y = q_diff.y_;
     t_.transform.rotation.x = q.x();
@@ -186,7 +190,7 @@ private:
     t_.transform.rotation.w = q.w();
 
     tf_broadcaster_->sendTransform(t_);
-    
+
   }
 
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;

@@ -53,7 +53,7 @@ public:
     }
 
     declare_parameter("encoder_ticks_per_rad", -1.0);
-    double encoder_ticks_per_rad_ = get_parameter("encoder_ticks_per_rad").as_double();  
+    double encoder_ticks_per_rad_ = get_parameter("encoder_ticks_per_rad").as_double();
     if (encoder_ticks_per_rad_ < 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "encoder_ticks_per_rad error");
       rclcpp::shutdown();
@@ -71,7 +71,9 @@ public:
       "cmd_vel", 10, std::bind(&TurtleControl::cmd_vel_callback, this, std::placeholders::_1));
 
     sensor_data_sub_ = this->create_subscription<nuturtlebot_msgs::msg::SensorData>(
-      "sensor_data", 10, std::bind(&TurtleControl::sensor_data_callback, this, std::placeholders::_1));
+      "sensor_data", 10, std::bind(
+        &TurtleControl::sensor_data_callback, this,
+        std::placeholders::_1));
 
     /// publishers
     wheel_cmd_pub_ = this->create_publisher<nuturtlebot_msgs::msg::WheelCommands>(
@@ -87,6 +89,7 @@ public:
       std::chrono::duration<double>(1.0 / 100.0), std::bind(&TurtleControl::timer_callback, this));
 
   }
+
 private:
   /// timer callback
   void timer_callback()
@@ -154,7 +157,6 @@ private:
   turtlelib::DiffDrive diff_drive_;
 
 };
-
 
 int main(int argc, char * argv[])
 {

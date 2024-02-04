@@ -12,19 +12,21 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(turtlelib REQUIRED)
 find_package(std_msgs REQUIRED)
-# find_package(std_srvs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(nuturtle_description REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
-# find_package(visualization_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 find_package(nuturtlebot_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(catch_ros2 REQUIRED)
 
 set(srv_files
 "srv/InitialPose.srv"
+"srv/Control.srv"
 )
 rosidl_generate_interfaces(${PROJECT_NAME}
 ${srv_files}
@@ -35,6 +37,7 @@ ament_target_dependencies(
   turtle_control_node
   rclcpp
   std_msgs
+  std_srvs
   nuturtle_description
   geometry_msgs
   tf2
@@ -49,6 +52,7 @@ ament_target_dependencies(
   odom_node
   rclcpp
   std_msgs
+  std_srvs
   nuturtle_description
   geometry_msgs
   tf2
@@ -63,6 +67,7 @@ ament_target_dependencies(
   circle_node
   rclcpp
   std_msgs
+  std_srvs
   nuturtle_description
   geometry_msgs
   tf2
@@ -72,11 +77,17 @@ ament_target_dependencies(
   turtlelib
   nav_msgs)
 
-rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} rosidl_typesupport_cpp)
+# rosidl_get_typesuppsort_target(cpp_typesupport_target ${PROJECT_NAME} rosidl_typesupport_cpp)
 
+rosidl_target_interfaces(turtle_control_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 target_link_libraries(turtle_control_node turtlelib::turtlelib "${cpp_typesupport_target}")
+
+rosidl_target_interfaces(odom_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 target_link_libraries(odom_node turtlelib::turtlelib "${cpp_typesupport_target}")
+
+rosidl_target_interfaces(circle_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 target_link_libraries(circle_node turtlelib::turtlelib "${cpp_typesupport_target}")
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -90,6 +101,51 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+if(BUILD_TESTING)
+  include(CTest)
+
+  ###############
+  ## UNIT TEST ##
+  ###############
+  add_executable(turtle_control_test_node
+    test/turtle_control_test.cpp
+  )
+  # Linking a unit test executable with catch_ros2::catch_ros2_with_main
+  # provides the default Catch2 main function to the executable.
+  target_link_libraries(turtle_control_test_node
+    catch_ros2::catch_ros2_with_main
+  )
+  ament_target_dependencies(turtle_control_test_node
+  rclcpp
+  std_msgs
+  std_srvs
+  nuturtle_description
+  geometry_msgs
+  tf2
+  tf2_ros
+  nuturtlebot_msgs
+  sensor_msgs
+  turtlelib
+  nav_msgs)
+
+  target_link_libraries(turtle_control_test_node turtlelib::turtlelib "${cpp_typesupport_target}")
+
+  install(TARGETS
+    turtle_control_test_node
+    DESTINATION lib/${PROJECT_NAME}
+  )
+
+  #################
+  ## LAUNCH FILE ##
+  #################
+  # This is the launch file that will be used to run the integration test
+  install(FILES
+    test/turtle_control_test.launch.xml
+    DESTINATION share/${PROJECT_NAME}
+  )
+
+endif()
+
 install(TARGETS
   turtle_control_node
   odom_node
@@ -99,5 +155,5 @@ install(TARGETS
 install(DIRECTORY srv
   DESTINATION share/${PROJECT_NAME}/)
 
-
+ament_export_dependencies(rosidl_default_runtime)
 ament_package()

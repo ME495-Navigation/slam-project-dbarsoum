@@ -30,35 +30,48 @@ void DiffDrive::update_configuration(WheelPositions_phi new_wheel_positions)
 {
     double delta_phi_left = new_wheel_positions.phi_left - wheel_positions_.phi_left;
     double delta_phi_right = new_wheel_positions.phi_right - wheel_positions_.phi_right;
-    Configuration_q delta_q_b;
-    Configuration_q delta_q;
+    // Configuration_q delta_q_b;
+    // Configuration_q delta_q;
 
     Twist2D twist;
     twist.omega = (wheel_radius_ / wheel_track_) * (-delta_phi_left + delta_phi_right);
     twist.x = (wheel_radius_ / 2.0) * (delta_phi_left + delta_phi_right);
     twist.y = 0.0;
 
-    if (almost_equal(twist.omega, 0.0, 1.0e-12))
-    {
-        delta_q_b.theta_ = 0.0;
-        delta_q_b.x_ = twist.x;
-        delta_q_b.y_ = twist.y;
-    }
-    else
-    {
-        delta_q_b.theta_ = twist.omega;
-        delta_q_b.x_ = ((twist.x * std::sin(twist.omega)) + (twist.y * (std::cos(twist.omega) - 1.0)))/ twist.omega;
-        delta_q_b.y_ = ((twist.y * std::sin(twist.omega)) + (twist.x * (1.0 - std::cos(twist.omega))))/ twist.omega;
-    }
+    // if (almost_equal(twist.omega, 0.0, 1.0e-12))
+    // {
+    //     delta_q_b.theta_ = 0.0;
+    //     delta_q_b.x_ = twist.x;
+    //     delta_q_b.y_ = twist.y;
+    // }
+    // else
+    // {
+    //     delta_q_b.theta_ = twist.omega;
+    //     delta_q_b.x_ = ((twist.x * std::sin(twist.omega)) + (twist.y * (std::cos(twist.omega) - 1.0)))/ twist.omega;
+    //     delta_q_b.y_ = ((twist.y * std::sin(twist.omega)) + (twist.x * (1.0 - std::cos(twist.omega))))/ twist.omega;
+    // }
     
-    delta_q.theta_ = delta_q_b.theta_;
-    delta_q.x_ = (std::cos(configuration_.theta_) * delta_q_b.x_) - (std::sin(configuration_.theta_) * delta_q_b.y_);
-    delta_q.y_ = (std::sin(configuration_.theta_) * delta_q_b.x_) + (std::cos(configuration_.theta_) * delta_q_b.y_);
+    // delta_q.theta_ = delta_q_b.theta_;
+    // delta_q.x_ = (std::cos(configuration_.theta_) * delta_q_b.x_) - (std::sin(configuration_.theta_) * delta_q_b.y_);
+    // delta_q.y_ = (std::sin(configuration_.theta_) * delta_q_b.x_) + (std::cos(configuration_.theta_) * delta_q_b.y_);
 
-    configuration_.theta_ += delta_q.theta_;
-    configuration_.x_ += delta_q.x_;
-    configuration_.y_ += delta_q.y_;
+    // configuration_.theta_ += delta_q.theta_;
+    // configuration_.x_ += delta_q.x_;
+    // configuration_.y_ += delta_q.y_;
+    // wheel_positions_ = new_wheel_positions;
+
+    Transform2D Tbbp = integrate_twist(twist);
+    Vector2D v;
+    v.x = configuration_.x_;
+    v.y = configuration_.y_;
+
+    Transform2D Twb = Transform2D(v, configuration_.theta_);
+    Transform2D Twbp = Twb * Tbbp;
+    configuration_.x_ = Twbp.translation().x;
+    configuration_.y_ = Twbp.translation().y;
+    configuration_.theta_ = Twbp.rotation();
     wheel_positions_ = new_wheel_positions;
+
 }
 
 WheelPositions_phi DiffDrive::compute_wheel_velocities(Twist2D twist)
@@ -72,7 +85,7 @@ WheelPositions_phi DiffDrive::compute_wheel_velocities(Twist2D twist)
     }
     else
     {
-        throw std::logic_error ("twist cannot be accomplished");
+        throw std::logic_error("twist cannot be accomplished");
     }
     return wheel_velocities;
 }
