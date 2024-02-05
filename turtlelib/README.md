@@ -20,6 +20,9 @@ A library for handling transformations in SE(2) and other turtlebot-related math
          **Con:** The function is not reusable and must be implemented in each script that uses it.
       3) **Pro:** The function is very efficient and does not require much memory.
          **Con:** The function is not reusable and must be implemented in each script that uses it.
+             I do not understand the pro's and cons of option 3. Operator overloading is effectively just a fancy syntax for naming a function.
+             E.g., instead ofcalling it normalize it would be called operator/() and could effectively be used as a normalize function.
+             However, the / operator is a binary operator not a unary operator so this actually could not be used for the normalize function.
 
    - Which of the methods would you implement and why?
       - I would implement method 1 because it is the easiest to implement and is reusable. I however did implement method 2 for frame_main.cpp because it was the most efficient and I did not need to reuse it. However, if I were to reuse it, I would implement method 1.

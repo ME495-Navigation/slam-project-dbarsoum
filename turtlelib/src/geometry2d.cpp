@@ -32,9 +32,10 @@ std::ostream & turtlelib::operator<<(std::ostream & os, const turtlelib::Point2D
 /// \param is - stream from which to read
 /// \param p [out] - output vector
 /// HINT: See operator>> for Vector2D
+// Do not repeat documentation in the cpp file, it is easy fo rthis to get out of sync
 std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Point2D & p)
 {
-    char c;
+    char c; // unitialized variable
     is >> c;
     if (c == '[')
     {
@@ -45,6 +46,7 @@ std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Point2D & p)
         is.putback(c);
         is >> p.x >> p.y;
     }
+    // there is a bug, this does not eat the ending ']'
     return is;
 }
 
@@ -53,12 +55,13 @@ std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Point2D & p)
 /// \param tail point corresponding to the tail of the vector
 /// \return a vector that points from p1 to p2
 /// NOTE: this is not implemented in terms of -= because subtracting two Point2D yields a Vector2D
+// Do not repeat documentation in the cpp file, it is easy fo rthis to get out of sync
 turtlelib::Vector2D turtlelib::operator-(const turtlelib::Point2D & head, const turtlelib::Point2D & tail)
 {
     Vector2D v;
     v.x = head.x - tail.x;
     v.y = head.y - tail.y;
-    return v;
+    return v; // can just return {head.x - tail.x, head.y - tail.y}
 }
 
 /// \brief Adding a vector to a point yields a new point displaced by the vector
@@ -71,7 +74,7 @@ turtlelib::Point2D turtlelib::operator+(const turtlelib::Point2D & tail, const t
     Point2D p;
     p.x = tail.x + disp.x;
     p.y = tail.y + disp.y;
-    return p;
+    return p; // can just return {}
 }
 
 /// \brief output a 2 dimensional vector as [xcomponent ycomponent]
@@ -101,5 +104,6 @@ std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Vector2D & v)
         is.putback(c);
         is >> v.x >> v.y;
     }
+    // did not eat the ']'
     return is;
 }

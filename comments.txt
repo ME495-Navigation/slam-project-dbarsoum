@@ -1,0 +1,3 @@
+nusim needs depend on nuturtle_description, otherwise colcon build can fail to compile the code
+doxygen shows warnings in generating documentation
+missing doxygen comments in nusim describing the ROS API

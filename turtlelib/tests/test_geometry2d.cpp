@@ -5,6 +5,7 @@
 
 TEST_CASE("Test almost_equal", "[almost_equal]")
 {
+    // these tests are better as static assertions because this is constexpr
     REQUIRE(turtlelib::almost_equal(1.0, 1.0) == true);
     REQUIRE(turtlelib::almost_equal(25.0, 28.0) == false);
     REQUIRE(turtlelib::almost_equal(0.0, 0.000000000000000000001) == true);
@@ -12,6 +13,7 @@ TEST_CASE("Test almost_equal", "[almost_equal]")
 
 TEST_CASE("Test deg2rad", "[deg2rad]")
 {
+    // these tests are better as static assertions because this is constexpr
     REQUIRE_THAT(turtlelib::deg2rad(0.0), Catch::Matchers::WithinAbs(0.0, 1e-12));
     REQUIRE_THAT(turtlelib::deg2rad(180.0), Catch::Matchers::WithinAbs(turtlelib::PI, 1e-12));
     REQUIRE_THAT(turtlelib::deg2rad(360.0), Catch::Matchers::WithinAbs(2.0 * turtlelib::PI, 1e-12));
@@ -20,6 +22,7 @@ TEST_CASE("Test deg2rad", "[deg2rad]")
 
 TEST_CASE("Test rad2deg", "[rad2deg]")
 {
+    // these tests are better as static assertions because this is constexpr
     REQUIRE_THAT(turtlelib::rad2deg(0.0), Catch::Matchers::WithinAbs(0.0, 1e-12));
     REQUIRE_THAT(turtlelib::rad2deg(turtlelib::PI), Catch::Matchers::WithinAbs(180.0, 1e-12));
     REQUIRE_THAT(turtlelib::rad2deg(2.0 * turtlelib::PI), Catch::Matchers::WithinAbs(360.0, 1e-12));
@@ -38,7 +41,7 @@ TEST_CASE("Test normalize_angle", "[normalize_angle]")
 
 TEST_CASE("Test operator<<", "[operator<<]")
 {
-    turtlelib::Point2D p;
+    turtlelib::Point2D p; // use constructor to initialize p: turtlelib::Point2D p{0.0}
     p.x = 0.0;
     p.y = 0.0;
     std::stringstream ss;

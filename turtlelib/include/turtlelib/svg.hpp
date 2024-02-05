@@ -15,16 +15,18 @@
 
 namespace turtlelib
 {
-    class CREATE_SVG
+    class CREATE_SVG // Classh should either be CamelCase or lower_case_with_underscores
     {
     public:
         /// \brief 
-        CREATE_SVG();
+        CREATE_SVG(); // all capital letters are reserved for MACROS by convention, you can adapt either CamelCase or whatever_this_is_called
 
         /// \brief return the svg string
-        std::string EXPORT();
+        std::string EXPORT(); // Does this function leave the object in a valid state after it is called?
 
         /// \brief takes in filename and returns a void
+        // doxygen comments must include all parameters
+        // const std::string & or std::string_view
         void EXPORT(std::string filename);
 
         /// \brief Create a point on the svg
@@ -35,6 +37,7 @@ namespace turtlelib
         void DRAW(turtlelib::Point2D head, turtlelib::Point2D tail, std::string color);
 
         /// \brief Create a coordinate frame
+        // const ref to tf,
         void DRAW(turtlelib::Transform2D tf);
         
         private:

@@ -19,7 +19,7 @@ std::ostream & turtlelib::operator<<(std::ostream & os, const turtlelib::Twist2D
 /// \returns the ostream os  with the twist data inserted
 std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Twist2D & tw)
 {
-    char c;
+    char c; // nunitialized
     is >> c;
     if (c == '[')
     {
@@ -33,8 +33,13 @@ std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Twist2D & tw)
     return is;
 }
 
+// the canonical way of implementing class methods within a namespace is as follows
+//namespace turtlelib
+//{
+// everything in here is now turtlelib
+//}
 /// \brief Create an identity transformation
-turtlelib::Transform2D::Transform2D()
+turtlelib::Transform2D::Transform2D() // use initializer list
 {
     theta = 0;
     pt.x = 0;
@@ -42,7 +47,7 @@ turtlelib::Transform2D::Transform2D()
 }
 
 /// \brief create a transformation that is a pure translation
-turtlelib::Transform2D::Transform2D(Vector2D trans)
+turtlelib::Transform2D::Transform2D(Vector2D trans) // use initializer lists
 {
     theta = 0;
     pt.x = trans.x;
@@ -50,7 +55,7 @@ turtlelib::Transform2D::Transform2D(Vector2D trans)
 }
 
 /// \brief create a pure rotation
-turtlelib::Transform2D::Transform2D(double radians)
+turtlelib::Transform2D::Transform2D(double radians) // initializer lists
 {
     theta = radians;
     pt.x = 0;
@@ -58,7 +63,7 @@ turtlelib::Transform2D::Transform2D(double radians)
 }
 
 /// \brief Create a transformation with a translational and rotational cmpnt
-turtlelib::Transform2D::Transform2D(Vector2D trans, double radians)
+turtlelib::Transform2D::Transform2D(Vector2D trans, double radians) // initializer lists
 {
     theta = radians;
     pt.x = trans.x;
@@ -71,7 +76,7 @@ turtlelib::Point2D turtlelib::Transform2D::operator()(turtlelib::Point2D p) cons
     turtlelib::Point2D newPoint;
     newPoint.x = cos(theta) * p.x - sin(theta) * p.y + pt.x;
     newPoint.y = sin(theta) * p.x + cos(theta) * p.y + pt.y;
-    return newPoint;
+    return newPoint; // can just return {cos(theta)*p.x - , ..rest of math}
 }
 
 /// \brief apply a transformation to a 2D Vector
@@ -80,7 +85,7 @@ turtlelib::Vector2D turtlelib::Transform2D::operator()(turtlelib::Vector2D v) co
     turtlelib::Vector2D newVector;
     newVector.x = cos(theta) * v.x - sin(theta) * v.y;
     newVector.y = sin(theta) * v.x + cos(theta) * v.y;
-    return newVector;
+    return newVector; // no need for temporary, just return {stuff, stuff1}
 }
 
 /// \brief apply a transformation to a Twist2D (e.g. using the adjoint)
@@ -90,7 +95,7 @@ turtlelib::Twist2D turtlelib::Transform2D::operator()(turtlelib::Twist2D v) cons
     newTwist.omega = v.omega;
     newTwist.x = pt.y* v.omega + cos(theta) * v.x - sin(theta) * v.y;
     newTwist.y = -pt.x * v.omega + sin(theta) * v.x + cos(theta) * v.y;
-    return newTwist;
+    return newTwist; // no need for temporary...
 }
 
 /// \brief invert the transformation
@@ -101,7 +106,7 @@ turtlelib::Transform2D turtlelib::Transform2D::inv() const
     Tinv.theta = -theta;
     Tinv.pt.x = -cos(theta) * pt.x - sin(theta) * pt.y;
     Tinv.pt.y = sin(theta) * pt.x - cos(theta) * pt.y;
-    return Tinv;
+    return Tinv; // no need for temporary can return {}
     
 }
 
@@ -113,9 +118,10 @@ turtlelib::Transform2D & turtlelib::Transform2D::operator*=(const turtlelib::Tra
 {
     pt.x = cos(theta) * rhs.pt.x - sin(theta) * rhs.pt.y + pt.x ;
     pt.y = sin(theta) * rhs.pt.x + cos(theta) * rhs.pt.y + pt.y;
+    // do not leave commented out code
     // pt.x = cos(theta) * rhs.pt.x - sin(theta) * rhs.pt.y;
     // pt.y = sin(theta) * rhs.pt.x + cos(theta) * rhs.pt.y;
-    theta = theta + rhs.theta;
+    theta = theta + rhs.theta; // +=
     return *this;
 }
 
@@ -126,7 +132,7 @@ turtlelib::Vector2D turtlelib::Transform2D::translation() const
     turtlelib::Vector2D v;
     v.x = pt.x;
     v.y = pt.y;
-    return v;
+    return v; // return {pt.x, pt.y}
 }
 
 /// \brief get the angular displacement of the transform

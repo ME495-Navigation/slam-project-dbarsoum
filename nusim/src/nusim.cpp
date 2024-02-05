@@ -18,6 +18,7 @@
 
 using namespace std::chrono_literals;
 
+// missing doxygen comments for the ROS 2 api
 class Nusim : public rclcpp::Node
 {
 public:
@@ -27,6 +28,7 @@ public:
     RCLCPP_INFO(this->get_logger(), "Nusim has been started.");
 
     /// declares a parameter
+    // unnecessary use of this
     this->declare_parameter("rate", 200.0);
     this->declare_parameter("x0", 0.0);
     this->declare_parameter("y0", 0.0);
@@ -38,6 +40,7 @@ public:
     this->declare_parameter("obstacles/r", std::vector<double>{});
 
     /// gets the value of the parameter
+    // unnecessary use of this->
     rate_ = this->get_parameter("rate").as_double();
     x0_ = this->get_parameter("x0").as_double();
     y0_ = this->get_parameter("y0").as_double();
@@ -51,9 +54,10 @@ public:
     obstacles_r_ = this->get_parameter("obstacles/r").as_double_array();
     if (obstacles_x_.size() != obstacles_y_.size() || obstacles_x_.size() != obstacles_r_.size()) {
       RCLCPP_ERROR(this->get_logger(), "Obstacles are not the same length.");
-      rclcpp::shutdown();
+      rclcpp::shutdown(); // throw an exception
     }
 
+    // unnecessary use of this
     RCLCPP_INFO(this->get_logger(), "Teleporting turtle to (%f, %f, %f).", x0_, y0_, theta0_);
 
     /// Initialize the transform broadcaster
@@ -61,6 +65,7 @@ public:
       std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
     /// creates a publisher
+    // unnecessary this->
     publisher_ = this->create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
     rclcpp::QoS qos_policy = rclcpp::QoS(rclcpp::KeepLast(10)).transient_local();
     marker_pub_ =
@@ -112,7 +117,7 @@ private:
 
     // Publish the markers
     visualization_msgs::msg::MarkerArray marker_array;
-    addWall(marker_array, arena_x_length_ / 2, 0.0, "top_wall", 1);
+    addWall(marker_array, arena_x_length_ / 2, 0.0, "top_wall", 1); // divide by 2.0 not 2
     addWall(marker_array, 0.0, arena_y_length_ / 2, "right_wall", 2);
     addWall(marker_array, -arena_x_length_ / 2, 0.0, "bottom_wall", 3);
     addWall(marker_array, 0.0, -arena_y_length_ / 2, "left_wall", 4);
@@ -120,8 +125,10 @@ private:
 
     // Publish the obstacles
     visualization_msgs::msg::MarkerArray obstacle_array;
+    // correct way to solve the warning is to declare int i as size_t instead
+    // avoid C styl,e casts.
     for (int i = 0; i < int(obstacles_x_.size()); i++) {
-      addObstacle(obstacle_array, obstacles_x_[i], obstacles_y_[i], obstacles_r_[i], "obstacle", i);
+        addObstacle(obstacle_array, obstacles_x_[i], obstacles_y_[i], obstacles_r_[i], "obstacle", i); // use .at()
     }
     obstacle_pub_->publish(obstacle_array);
   }
@@ -134,7 +141,7 @@ private:
     x0_ = 0.0;
     y0_ = 0.0;
     theta0_ = 0.0;
-
+    // unnecessary this->
     RCLCPP_INFO(this->get_logger(), "Resetting timestep to 0.");
   }
 
@@ -142,6 +149,7 @@ private:
     const std::shared_ptr<nusim::srv::Teleport::Request> request,
     std::shared_ptr<nusim::srv::Teleport::Response>)
   {
+      // use RCLCPP_INFO_STREAM
     RCLCPP_INFO(
       this->get_logger(), "Teleporting turtle to (%f, %f, %f).", request->x, request->y,
       request->theta);

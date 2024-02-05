@@ -9,8 +9,9 @@
 
 /// \brief prompt user to enter two transforms
 /// compute and output the composition of the two transforms
-using namespace std;
+using namespace std; // do not using namespace, using std::thing_you_need_in_std_for_each_thing_you_need
 
+// this should be implemented in geometry2d.cpp since it is part of that library
 turtlelib::Vector2D normalize(turtlelib::Vector2D v_b)
 {
     turtlelib::Vector2D v_bhat;
@@ -24,10 +25,12 @@ int main()
 {   
     turtlelib::CREATE_SVG svg;
 
+    // using std::string;
+    // using turtlelib::Transform2D;
      /// COLORS
-    std::string color_purple = "purple";
-    std::string color_brown = "brown";
-    std::string color_orange = "orange";
+    std::string color_purple = "purple"; // const
+    std::string color_brown = "brown"; // const
+    std::string color_orange = "orange"; //const
 
     /// TRANSFORMS
     turtlelib::Transform2D T_ab;
@@ -71,7 +74,7 @@ int main()
     turtlelib::Point2D p_c;
 
     /// prompt user to enter a point
-    cout << "Enter a point:\n";
+    cout << "Enter a point:\n"; // you want a endl here to ensure that the stdout buffer is flushed
     cin >> p_a;
 
     p_b = T_ba.operator()(p_a);
@@ -94,7 +97,7 @@ int main()
 
     /// POINTS (needed for drawing vectors)
     turtlelib::Point2D head;
-    turtlelib::Point2D tail;
+    turtlelib::Point2D tail; // directly initialize
     tail.x = 0;
     tail.y = 0;
 

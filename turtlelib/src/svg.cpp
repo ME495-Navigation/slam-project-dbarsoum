@@ -7,6 +7,7 @@
 /// \brief 
 turtlelib::CREATE_SVG::CREATE_SVG()
 {
+    // No need to create all these temporaries, use the init list to initialize this string
     svg_str = "\n<svg width=\"8.500000in\" height=\"11.000000in\" viewBox=\"0 0 816.000000 1056.000000\" xmlns=\"http://www.w3.org/2000/svg\">\n";
     svg_str += "\n<defs>";
     svg_str += "\n\t<marker";
@@ -42,8 +43,11 @@ void turtlelib::CREATE_SVG::EXPORT(std::string filename)
 void turtlelib::CREATE_SVG::DRAW(turtlelib::Point2D pt, std::string color)
 {
     turtlelib::Point2D pixel_pt;
-    pixel_pt.x = pt.x *96.0 + 8.5/2.0*96.0;
+    pixel_pt.x = pt.x *96.0 + 8.5/2.0*96.0; // these magic numbers should like be constexpr values somewhere
     pixel_pt.y = -pt.y *96.0 + 11.0/2.0*96.0;
+    // there is no need to += all these strings. You can still divide a string literal up across lines
+    // Two "c sytle""string_literals" automatically concatenate
+    // by += all of these strings you are technically creating a series of unnecessary temporary values
     svg_str += "\n<circle";
     svg_str += " cx=\"" + std::to_string(pixel_pt.x) + "\"";
     svg_str += " cy=\"" + std::to_string(pixel_pt.y) + "\"";
@@ -56,9 +60,9 @@ void turtlelib::CREATE_SVG::DRAW(turtlelib::Point2D pt, std::string color)
 
 void turtlelib::CREATE_SVG::DRAW(turtlelib::Point2D head, turtlelib::Point2D tail, std::string color)
 {
-    turtlelib::Point2D pixel_pt1;
+    turtlelib::Point2D pixel_pt1; // use the point2d constructor to intialize these points
     turtlelib::Point2D pixel_pt2;
-    pixel_pt1.x = head.x *96.0 + 8.5/2.0*96.0;
+    pixel_pt1.x = head.x *96.0 + 8.5/2.0*96.0;  
     pixel_pt1.y = -head.y *96.0 + 11.0/2.0*96.0;
     pixel_pt2.x = tail.x *96.0 + 8.5/2.0*96.0;
     pixel_pt2.y = -tail.y *96.0 + 11.0/2.0*96.0;
@@ -76,6 +80,8 @@ void turtlelib::CREATE_SVG::DRAW(turtlelib::Point2D head, turtlelib::Point2D tai
 void turtlelib::CREATE_SVG::DRAW(turtlelib::Transform2D tf)
 {
     /// head is point 1 and tail is point 2 and point 3
+    // use constructor to initialize these values
+    // declare variables closer to where they are used
     turtlelib::Point2D pt1;
     turtlelib::Point2D pt2;
     turtlelib::Point2D pt3;
