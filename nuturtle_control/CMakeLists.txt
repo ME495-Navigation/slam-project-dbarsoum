@@ -23,6 +23,7 @@ find_package(nuturtlebot_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(catch_ros2 REQUIRED)
+find_package(nuturtle_control REQUIRED)
 
 set(srv_files
 "srv/InitialPose.srv"
@@ -79,15 +80,27 @@ ament_target_dependencies(
 
 # rosidl_get_typesuppsort_target(cpp_typesupport_target ${PROJECT_NAME} rosidl_typesupport_cpp)
 
-rosidl_target_interfaces(turtle_control_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
-target_link_libraries(turtle_control_node turtlelib::turtlelib "${cpp_typesupport_target}")
-
 rosidl_target_interfaces(odom_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
-target_link_libraries(odom_node turtlelib::turtlelib "${cpp_typesupport_target}")
+# target_link_libraries(odom_node "${cpp_typesupport_target}")
 
 rosidl_target_interfaces(circle_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
+# target_link_libraries(circle_node "${cpp_typesupport_target}")
+
+rosidl_target_interfaces(turtle_control_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
+
+target_link_libraries(turtle_control_node turtlelib::turtlelib "${cpp_typesupport_target}")
+target_link_libraries(odom_node turtlelib::turtlelib "${cpp_typesupport_target}")
 target_link_libraries(circle_node turtlelib::turtlelib "${cpp_typesupport_target}")
 
+
+install(TARGETS
+  turtle_control_node
+  odom_node
+  circle_node
+  DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY srv launch
+  DESTINATION share/${PROJECT_NAME}/)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -114,7 +127,7 @@ if(BUILD_TESTING)
   # Linking a unit test executable with catch_ros2::catch_ros2_with_main
   # provides the default Catch2 main function to the executable.
   target_link_libraries(turtle_control_test_node
-    catch_ros2::catch_ros2_with_main
+    catch_ros2::catch_ros2_with_node_main
   )
   ament_target_dependencies(turtle_control_test_node
   rclcpp
@@ -136,10 +149,6 @@ if(BUILD_TESTING)
     DESTINATION lib/${PROJECT_NAME}
   )
 
-  #################
-  ## LAUNCH FILE ##
-  #################
-  # This is the launch file that will be used to run the integration test
   install(FILES
     test/turtle_control_test.launch.xml
     DESTINATION share/${PROJECT_NAME}
@@ -151,7 +160,7 @@ if(BUILD_TESTING)
   )
 
   target_link_libraries(turtle_odom_test_node
-    catch_ros2::catch_ros2_with_main
+    catch_ros2::catch_ros2_with_node_main
   )
 
   ament_target_dependencies(turtle_odom_test_node
@@ -174,21 +183,61 @@ if(BUILD_TESTING)
     DESTINATION lib/${PROJECT_NAME}
   )
 
+
   install(FILES
     test/turtle_odom_test.launch.xml
     DESTINATION share/${PROJECT_NAME}
   )
 
+  #### circle test
+  add_executable(turtle_circle_test_node
+    test/turtle_circle_test_node.cpp
+  )
+
+  target_link_libraries(turtle_circle_test_node
+    catch_ros2::catch_ros2_with_node_main
+  )
+
+  ament_target_dependencies(turtle_circle_test_node
+  rclcpp
+  std_msgs
+  std_srvs
+  nuturtle_description
+  geometry_msgs
+  tf2
+  tf2_ros
+  nuturtlebot_msgs
+  sensor_msgs
+  turtlelib
+  nav_msgs
+  nuturtle_control)
+
+  target_link_libraries(turtle_circle_test_node turtlelib::turtlelib "${cpp_typesupport_target}")
+
+  install(TARGETS
+    turtle_circle_test_node
+    DESTINATION lib/${PROJECT_NAME}
+  )
+
+  install(FILES
+    test/turtle_circle_test.launch.xml
+    DESTINATION share/${PROJECT_NAME}
+  )
+
+  ###############
+  catch_ros2_add_integration_test(TurtleControl_TestXML
+    LAUNCH_FILE turtle_control_test.launch.xml  # example in XML
+  )
+
+  catch_ros2_add_integration_test(Odometry_TestXML
+    LAUNCH_FILE turtle_odom_test.launch.xml  # example in XML
+  )
+
+  catch_ros2_add_integration_test(Circle_TestXML
+    LAUNCH_FILE turtle_circle_test.launch.xml  # example in XML
+  )
+
 endif()
-
-install(TARGETS
-  turtle_control_node
-  odom_node
-  circle_node
-  DESTINATION lib/${PROJECT_NAME})
-
-install(DIRECTORY srv
-  DESTINATION share/${PROJECT_NAME}/)
 
 ament_export_dependencies(rosidl_default_runtime)
 ament_package()

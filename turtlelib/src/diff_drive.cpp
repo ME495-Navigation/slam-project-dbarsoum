@@ -22,8 +22,8 @@ DiffDrive::DiffDrive(double wheel_track, double wheel_radius)
 {
     wheel_track_ = wheel_track;
     wheel_radius_ = wheel_radius;
-    wheel_positions_.phi_left = 0.0;
-    wheel_positions_.phi_right = 0.0;
+    // wheel_positions_.phi_left = 0.0;
+    // wheel_positions_.phi_right = 0.0;
 }
 
 void DiffDrive::update_configuration(WheelPositions_phi new_wheel_positions)

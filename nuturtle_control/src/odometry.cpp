@@ -26,10 +26,10 @@ public:
   : Node("Odometry")
   {
     /// publishes odometry messages and the odometry transform
-    RCLCPP_INFO(this->get_logger(), "odometry has been started.");
+    // RCLCPP_INFO(this->get_logger(), "odometry has been started.");
 
     declare_parameter("wheel_radius", -1.0);
-    wheel_radius_ = get_parameter("wheel_radius").as_double();
+    wheel_radius_ = this->get_parameter("wheel_radius").as_double();
     // RCLCPP_INFO_STREAM(get_logger(), "wheel radius: " << wheel_radius_);
     if (wheel_radius_ < 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_radius error");
@@ -100,12 +100,12 @@ private:
   /// timer callback
   void timer_callback()
   {
-    RCLCPP_INFO_STREAM(this->get_logger(), "timer_callback");
+    // RCLCPP_INFO_STREAM(this->get_logger(), "timer_callback");
   }
 
   void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
   {
-    RCLCPP_INFO_STREAM(this->get_logger(), "joint_state_callback");
+    // RCLCPP_INFO_STREAM(this->get_logger(), "joint_state_callback");
 
     turtlelib::WheelPositions_phi wheel_positions;
     wheel_positions.phi_left = msg->position[0];
@@ -150,7 +150,7 @@ private:
     const std::shared_ptr<nuturtle_control::srv::InitialPose::Request> req,
     std::shared_ptr<nuturtle_control::srv::InitialPose::Response>)
   {
-    RCLCPP_INFO_STREAM(this->get_logger(), "initial_pose_callback");
+    // RCLCPP_INFO_STREAM(this->get_logger(), "initial_pose_callback");
 
     turtlelib::Configuration_q q_diff;
     q_diff.x_ = req->x;

@@ -19,7 +19,7 @@ using namespace turtlelib;
 TEST_CASE("odom_test_init", "[odom_test_init]") {
   // test case for initial pose service
 
-  auto node = rclcpp::Node::make_shared("turtle_odom_test_node");
+  auto node = rclcpp::Node::make_shared("turtle_odom_test");
 
   // Declare a parameter on node
   node->declare_parameter<float>("wheel_radius", 0.033);
@@ -51,8 +51,8 @@ TEST_CASE("odom_test_init", "[odom_test_init]") {
     ((rclcpp::Clock().now() - start_time) < rclcpp::Duration::from_seconds(2))
   )
   {
-    // wait for service to be available (1 second or 1 second??)
-    if (client->wait_for_service(1s)) {
+    // wait for service to be available (1 second or 0 second??)
+    if (client->wait_for_service(0s)) {
       initial_pose_srv_found = true;
       break;
     }
@@ -64,7 +64,7 @@ TEST_CASE("odom_test_init", "[odom_test_init]") {
   CHECK(initial_pose_srv_found);
 }
 
-TEST_CASE("odom_test_tf", "[odom_test_tf]") {
+TEST_CASE("Test odom_test_tf", "[odom_test_tf]") {
   // test case for odometry transform
   // uses a tf2_listener to verify that a transform from odom to a base_footprint is being published
   // transform should be the identity transformation, the joint states will not change throughout the test
@@ -96,10 +96,20 @@ TEST_CASE("odom_test_tf", "[odom_test_tf]") {
   auto odom_msg = nav_msgs::msg::Odometry();
   odom_msg.header.frame_id = ODOM_ID;
   odom_msg.child_frame_id = BODY_ID;
+  // odom_msg.pose.pose.position.x = 0.0;
+  // odom_msg.pose.pose.position.y = 0.0;
+  // odom_msg.pose.pose.position.z = 0.0;
+  // odom_msg.pose.pose.orientation.x = 0.0;
+  // odom_msg.pose.pose.orientation.y = 0.0;
+  // odom_msg.pose.pose.orientation.z = 0.0;
+  // odom_msg.pose.pose.orientation.w = 1.0;
 
   // create odometry transform
   auto odom_tf = geometry_msgs::msg::TransformStamped();
   odom_tf.header.frame_id = ODOM_ID;
   odom_tf.child_frame_id = BODY_ID;
+
+  odom_tf.transform.translation.x = 0.0;
+
 
 }

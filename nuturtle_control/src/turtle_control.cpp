@@ -23,44 +23,44 @@ public:
   {
     RCLCPP_INFO(this->get_logger(), "turtle_control has been started.");
 
-    declare_parameter("wheel_radius", -1.0);
-    wheel_radius_ = get_parameter("wheel_radius").as_double();
+    this->declare_parameter("wheel_radius", -1.0);
+    wheel_radius_ = this->get_parameter("wheel_radius").as_double();
     // RCLCPP_INFO_STREAM(get_logger(), "wheel radius: " << wheel_radius_);
     if (wheel_radius_ < 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_radius error");
       rclcpp::shutdown();
     }
 
-    declare_parameter("track_width", -1.0);
-    double track_width_ = get_parameter("track_width").as_double();
+    this->declare_parameter("track_width", -1.0);
+    double track_width_ = this->get_parameter("track_width").as_double();
     if (track_width_ < 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "track_width error");
       rclcpp::shutdown();
     }
 
-    declare_parameter("motor_cmd_speed", -1.0);
-    double motor_cmd_speed_ = get_parameter("motor_cmd_speed").as_double();
+    this->declare_parameter("motor_cmd_max", -1.0);
+    double motor_cmd_speed_ = this->get_parameter("motor_cmd_max").as_double();
     if (motor_cmd_speed_ < 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "motor_cmd_speed error");
       rclcpp::shutdown();
     }
 
-    declare_parameter("motor_cmd_per_rad_sec", -1.0);
-    double motor_cmd_per_rad_sec_ = get_parameter("motor_cmd_per_rad_sec").as_double();
+    this->declare_parameter("motor_cmd_per_rad_sec", -1.0);
+    double motor_cmd_per_rad_sec_ = this->get_parameter("motor_cmd_per_rad_sec").as_double();
     if (motor_cmd_per_rad_sec_ < 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "motor_cmd_per_rad_sec error");
       rclcpp::shutdown();
     }
 
-    declare_parameter("encoder_ticks_per_rad", -1.0);
-    double encoder_ticks_per_rad_ = get_parameter("encoder_ticks_per_rad").as_double();
+    this->declare_parameter("encoder_ticks_per_rad", -1.0);
+    double encoder_ticks_per_rad_ = this->get_parameter("encoder_ticks_per_rad").as_double();
     if (encoder_ticks_per_rad_ < 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "encoder_ticks_per_rad error");
       rclcpp::shutdown();
     }
 
-    declare_parameter("collision_radius", -1.0);
-    double collision_radius_ = get_parameter("collision_radius").as_double();
+    this->declare_parameter("collision_radius", -1.0);
+    double collision_radius_ = this->get_parameter("collision_radius").as_double();
     if (collision_radius_ < 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "collision_radius error");
       rclcpp::shutdown();
@@ -82,25 +82,25 @@ public:
     joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>(
       "joint_states", 10);
 
-    diff_drive_ = turtlelib::DiffDrive(wheel_radius_, track_width_);
+    diff_drive_ = turtlelib::DiffDrive(track_width_, wheel_radius_);
 
-    /// timers
-    timer_ = this->create_wall_timer(
-      std::chrono::duration<double>(1.0 / 100.0), std::bind(&TurtleControl::timer_callback, this));
+    // /// timers
+    // timer_ = this->create_wall_timer(
+    //   std::chrono::duration<double>(1.0 / 100.0), std::bind(&TurtleControl::timer_callback, this));
 
   }
 
 private:
-  /// timer callback
-  void timer_callback()
-  {
-    RCLCPP_INFO_STREAM(this->get_logger(), "timer_callback");
-  }
+  // /// timer callback
+  // void timer_callback()
+  // {
+  //   RCLCPP_INFO_STREAM(this->get_logger(), "timer_callback");
+  // }
 
   /// subscriber callbacks
   void cmd_vel_callback(const geometry_msgs::msg::Twist::SharedPtr msg)
   {
-    RCLCPP_INFO_STREAM(this->get_logger(), "cmd_vel_callback");
+    // RCLCPP_INFO_STREAM(this->get_logger(), "cmd_vel_callback");
 
     turtlelib::Twist2D twist;
     twist.x = msg->linear.x;
@@ -120,24 +120,26 @@ private:
     RCLCPP_INFO_STREAM(this->get_logger(), "sensor_data_callback");
 
     // convert encoder ticks to radians
-    double left_encoder = msg->left_encoder / encoder_ticks_per_rad_;
-    double right_encoder = msg->right_encoder / encoder_ticks_per_rad_;
+    // double left_encoder = msg->left_encoder / encoder_ticks_per_rad_;
+    // double right_encoder = msg->right_encoder / encoder_ticks_per_rad_;
 
     turtlelib::WheelPositions_phi wheel_positions;
-    wheel_positions.phi_left = left_encoder;
-    wheel_positions.phi_right = right_encoder;
+    wheel_positions.phi_left = msg->left_encoder / encoder_ticks_per_rad_;
+    wheel_positions.phi_right = msg->right_encoder / encoder_ticks_per_rad_;
     // diff_drive_.update_configuration(wheel_positions);
 
     sensor_msgs::msg::JointState joint_state;
     joint_state.header.stamp = this->now();
-    joint_state.name.resize(2);
-    joint_state.position.resize(2);
-    joint_state.effort.resize(2);
+    joint_state.name = {"left_wheel_joint", "right_wheel_joint"};
+    joint_state.position = {wheel_positions.phi_left, wheel_positions.phi_right};
+    // joint_state.name.resize(2);
+    // joint_state.position.resize(2);
+    // joint_state.effort.resize(2);
 
-    joint_state.name[0] = "left_wheel_joint";
-    joint_state.position[0] = wheel_positions.phi_left;
-    joint_state.name[1] = "right_wheel_joint";
-    joint_state.position[1] = wheel_positions.phi_right;
+    // joint_state.name[0] = "left_wheel_joint";
+    // joint_state.position[0] = wheel_positions.phi_left;
+    // joint_state.name[1] = "right_wheel_joint";
+    // joint_state.position[1] = wheel_positions.phi_right;
 
     joint_state_pub_->publish(joint_state);
   }
