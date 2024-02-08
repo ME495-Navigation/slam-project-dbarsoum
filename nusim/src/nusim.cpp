@@ -24,7 +24,7 @@ public:
   Nusim()
   : Node("nusim")
   {
-    RCLCPP_INFO(this->get_logger(), "Nusim has been started.");
+    // RCLCPP_INFO(this->get_logger(), "Nusim has been started.");
 
     /// declares a parameter
     this->declare_parameter("rate", 200.0);
@@ -54,7 +54,7 @@ public:
       rclcpp::shutdown();
     }
 
-    RCLCPP_INFO(this->get_logger(), "Teleporting turtle to (%f, %f, %f).", x0_, y0_, theta0_);
+    // RCLCPP_INFO(this->get_logger(), "Teleporting turtle to (%f, %f, %f).", x0_, y0_, theta0_);
 
     /// Initialize the transform broadcaster
     tf_broadcaster_ =
@@ -91,7 +91,7 @@ private:
     auto message = std_msgs::msg::UInt64();
     /// need the timestep in ms
     message.data = timestep_++ *(1 / rate_) * 1e3;
-    RCLCPP_INFO(this->get_logger(), "Publishing: '%ld'", message.data);
+    // RCLCPP_INFO(this->get_logger(), "Publishing: '%ld'", message.data);
     publisher_->publish(message);
 
     // Publish the transformation

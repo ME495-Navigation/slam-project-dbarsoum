@@ -23,7 +23,7 @@ find_package(nuturtlebot_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(catch_ros2 REQUIRED)
-find_package(nuturtle_control REQUIRED)
+# find_package(nuturtle_control REQUIRED)
 
 set(srv_files
 "srv/InitialPose.srv"
@@ -99,7 +99,7 @@ install(TARGETS
   circle_node
   DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY srv launch
+install(DIRECTORY srv launch config
   DESTINATION share/${PROJECT_NAME}/)
 
 if(BUILD_TESTING)
@@ -209,10 +209,11 @@ if(BUILD_TESTING)
   nuturtlebot_msgs
   sensor_msgs
   turtlelib
-  nav_msgs
-  nuturtle_control)
+  nav_msgs)
+  # nuturtle_control)
 
   target_link_libraries(turtle_circle_test_node turtlelib::turtlelib "${cpp_typesupport_target}")
+  rosidl_target_interfaces(turtle_circle_test_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
   install(TARGETS
     turtle_circle_test_node

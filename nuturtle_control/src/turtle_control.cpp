@@ -129,9 +129,10 @@ private:
     // diff_drive_.update_configuration(wheel_positions);
 
     sensor_msgs::msg::JointState joint_state;
-    joint_state.header.stamp = this->now();
+    joint_state.header.stamp = now();
     joint_state.name = {"left_wheel_joint", "right_wheel_joint"};
     joint_state.position = {wheel_positions.phi_left, wheel_positions.phi_right};
+    // joint_state.velocity = {} # subtract new from old
     // joint_state.name.resize(2);
     // joint_state.position.resize(2);
     // joint_state.effort.resize(2);

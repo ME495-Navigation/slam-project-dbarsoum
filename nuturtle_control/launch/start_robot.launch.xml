@@ -4,57 +4,54 @@
     <arg name="use_rviz" default="true"/>
 
     <!-- cmd_src argument -->
-    <node pkg="nuturtle_control" exec="circle_node" name="circle_node" if="$(eval "$(var cmd_src)' == 'circle")">
+    <node pkg="nuturtle_control" exec="circle_node" name="circle_node" if="$(eval '\'$(var cmd_src)\' == \'circle\'')" >
         <param name="frequency" value="100.0"/>
     </node>
 
-    <node pkg="turtlebot3_teleop" exec="turtlebot3_twist_keyboard" if="$(eval "$(var cmd_src)' == 'teleop")">
+    <node pkg="turtlebot3_teleop" exec="teleop_twist_keyboard" if="$(eval '\'$(var cmd_src)\' == \'teleop\'')" >
     </node>
 
     <!-- robot argument -->
-    <arg name="config_file" default="$(find-pkg-share nusim)/config/basic_world.yaml"/>
-    <node pkg="nusim" exec="nusim_node" name="nusim_node" if="$(eval "$(var robot)' == 'nusim")" >
-        <param name="config_file" value="$(find-pkg-share nusim)/config/basic_world.yaml"/>
-    </node>
+    <group if="$(eval '\'$(var robot)\' == \'nusim\'')" >
 
-    <arg name="config_params_file" default="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
-    <node pkg="nuturtle_control" exec="odom_node" name="odom_node" if="$(eval "$(var robot)' == 'nusim")">
-        <param name="config_params_file" value="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
-        <param name="body_id" value="blue/base_footprint"/>
-        <param name="odom_id" value="odom"/>
-        <param name="wheel_left", value="wheel_left"/>
-        <param name="wheel_right", value="wheel_right"/>
-    </node>
+        <node pkg="nusim" exec="nusim_node" name="nusim_node" output="screen" >
+            <param from="$(find-pkg-share nusim)/config/basic_world.yaml"/>
+            <remap from="wheel_cmd" to="red/wheel_cmd" />
+            <remap from="joint_states" to="red/joint_states" />
+        </node>
 
-    <node pkg="nuturtle_control" exec="turtle_control_node" name="turtle_control_node" if="$(eval "$(var robot)' == 'nusim")">
-        <param name="config_params_file" value="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
-    </node>
+        <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py" >
+            <arg name="use_rviz" value="false" />
+            <arg name="color" value="red" />
+        </include>
 
-    <!-- if robot == localhost -->
-    <!-- use_rviz == false here when using localhost -->
+        <node pkg="nuturtle_control" exec="odom_node" >
+            <param name="body_id" value="blue/base_footprint" />
+            <param name="odom_id" value="odom" />
+            <param name="wheel_left" value="wheel_left" />
+            <param name="wheel_right" value="wheel_right" />
+            <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+            <remap from="joint_states" to="blue/joint_states" />
+        </node>
 
-    <!-- tf2_ros_static_transform_publisher -->
-    <!-- <node pkg="tf2_ros" exec="static_transform_publisher" name="static_transform_publisher" if="$(eval "$(var robot)' == 'localhost")">
-        <param name="x" value="0.0"/>
-        <param name="y" value="0.0"/>
-        <param name="z" value="0.0"/>
-        <param name="qx" value="0.0"/>
-        <param name="qy" value="0.0"/>
-        <param name="qz" value="0.0"/>
-        <param name="qw" value="1.0"/>
-        <param name="frame_id" value="base_footprint"/>
-        <param name="child_frame_id" value="base_link"/> -->
+        <node pkg="nuturtle_control" exec="turtle_control_node" >
+            <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+            <remap from="wheel_cmd" to="red/wheel_cmd" />
+            <remap from="joint_states" to="blue/joint_states" />
+        </node>
 
+        <node pkg="tf2_ros" exec="static_transform_publisher" name="nusim_world_to_odom" args="--frame-id nusim/world --child-frame-id odom" />
 
-    <node pkg="tf2_ros" exec="static_transform_publisher" name="nusim_world_to_odom" args="--frame-id nusim/world --child-frame-id odom" if="$(eval "$(var robot)' == 'localhost")" />
-    
+    </group>
+
+    <group if="$(eval '\'$(var use_rviz)\' == \'true\'')" >
+        <node pkg="rviz2" exec="rviz2" name="rviz2" args="-d $(find-pkg-share nuturtle_control)/config/start_robot.rviz -f nusim/world">
+        </node>
+    </group>
+
     <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py" >
         <arg name="use_rviz" value="false" />
         <arg name="color" value="blue" />
     </include>
-
-    <!-- launch rviz -->
-    <node pkg="rviz2" exec="rviz2" name="rviz2" args="-d $(find-pkg-share nusim)/config/nusim.rviz -f nusim/world">
-        <arg name="use_rviz" value="true"/>
 
 </launch>
