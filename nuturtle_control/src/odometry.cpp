@@ -29,7 +29,7 @@ public:
     // RCLCPP_INFO(this->get_logger(), "odometry has been started.");
 
     declare_parameter("wheel_radius", -1.0);
-    wheel_radius_ = this->get_parameter("wheel_radius").as_double();
+    wheel_radius_ = get_parameter("wheel_radius").as_double();
     // RCLCPP_INFO_STREAM(get_logger(), "wheel radius: " << wheel_radius_);
     if (wheel_radius_ < 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_radius error");
@@ -44,29 +44,29 @@ public:
     }
 
     /// parameters
-    this->declare_parameter("body_id", std::string(" "));
-    body_id_ = this->get_parameter("body_id").as_string();
+    declare_parameter("body_id", std::string(" "));
+    body_id_ = get_parameter("body_id").as_string();
     if (body_id_ == " ") {
       RCLCPP_ERROR_STREAM(this->get_logger(), "body_id error");
       rclcpp::shutdown();
     }
 
-    this->declare_parameter("odom_id", std::string("odom"));
-    odom_id_ = this->get_parameter("odom_id").as_string();
+    declare_parameter("odom_id", std::string("odom"));
+    odom_id_ = get_parameter("odom_id").as_string();
     if (odom_id_ == " ") {
       RCLCPP_ERROR_STREAM(this->get_logger(), "odom_id error");
       rclcpp::shutdown();
     }
 
-    this->declare_parameter("wheel_left", std::string(" "));
-    wheel_left_ = this->get_parameter("wheel_left").as_string();
+    declare_parameter("wheel_left", std::string(" "));
+    wheel_left_ = get_parameter("wheel_left").as_string();
     if (wheel_left_ == " ") {
       RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_left error");
       rclcpp::shutdown();
     }
 
-    this->declare_parameter("wheel_right", std::string(" "));
-    wheel_right_ = this->get_parameter("wheel_right").as_string();
+    declare_parameter("wheel_right", std::string(" "));
+    wheel_right_ = get_parameter("wheel_right").as_string();
     if (wheel_right_ == " ") {
       RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_right error");
       rclcpp::shutdown();
@@ -100,30 +100,16 @@ private:
   /// timer callback
   void timer_callback()
   {
-    // RCLCPP_INFO_STREAM(this->get_logger(), "timer_callback");
-  }
-
-  void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
-  {
-    // RCLCPP_INFO_STREAM(this->get_logger(), "joint_state_callback");
-
-    turtlelib::WheelPositions_phi wheel_positions;
-    wheel_positions.phi_left = msg->position[0];
-    wheel_positions.phi_right = msg->position[1];
-
-    diff_drive_.update_configuration(wheel_positions);
-    turtlelib::Configuration_q q_diff = diff_drive_.get_configuration();
-
     /// need to publish the odometry message
     nav_msgs::msg::Odometry odom;
     odom.header.stamp = this->now();
     odom.header.frame_id = odom_id_;
     odom.child_frame_id = body_id_;
-    odom.pose.pose.position.x = q_diff.x_;
-    odom.pose.pose.position.y = q_diff.y_;
+    odom.pose.pose.position.x = q_diff_.x_;
+    odom.pose.pose.position.y = q_diff_.y_;
     odom.pose.pose.position.z = 0.0;
     tf2::Quaternion q;
-    q.setRPY(0, 0, q_diff.theta_);
+    q.setRPY(0.0, 0.0, q_diff_.theta_);
     odom.pose.pose.orientation.x = q.x();
     odom.pose.pose.orientation.y = q.y();
     odom.pose.pose.orientation.z = q.z();
@@ -135,15 +121,56 @@ private:
     t_.header.frame_id = odom_id_;
     t_.child_frame_id = body_id_;
 
-    t_.transform.translation.x = q_diff.x_;
-    t_.transform.translation.y = q_diff.y_;
+    t_.transform.translation.x = q_diff_.x_;
+    t_.transform.translation.y = q_diff_.y_;
     t_.transform.rotation.x = q.x();
     t_.transform.rotation.y = q.y();
     t_.transform.rotation.z = q.z();
     t_.transform.rotation.w = q.w();
 
     tf_broadcaster_->sendTransform(t_);
+  }
 
+  void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
+  {
+    // RCLCPP_INFO_STREAM(this->get_logger(), "joint_state_callback");
+
+    // turtlelib::WheelPositions_phi wheel_positions;
+    wheel_positions_.phi_left = msg->position.at(0);
+    wheel_positions_.phi_right = msg->position.at(1);
+
+    diff_drive_.update_configuration(wheel_positions_);
+    q_diff_ = diff_drive_.get_configuration();
+
+    /// need to publish the odometry message
+    nav_msgs::msg::Odometry odom;
+    odom.header.stamp = this->now();
+    odom.header.frame_id = odom_id_;
+    odom.child_frame_id = body_id_;
+    odom.pose.pose.position.x = q_diff_.x_;
+    odom.pose.pose.position.y = q_diff_.y_;
+    odom.pose.pose.position.z = 0.0;
+    tf2::Quaternion q;
+    q.setRPY(0.0, 0.0, q_diff_.theta_);
+    odom.pose.pose.orientation.x = q.x();
+    odom.pose.pose.orientation.y = q.y();
+    odom.pose.pose.orientation.z = q.z();
+    odom.pose.pose.orientation.w = q.w();
+    odometry_publisher_->publish(odom);
+
+    /// need to publish the odometry transform
+    t_.header.stamp = this->get_clock()->now();
+    t_.header.frame_id = odom_id_;
+    t_.child_frame_id = body_id_;
+
+    t_.transform.translation.x = q_diff_.x_;
+    t_.transform.translation.y = q_diff_.y_;
+    t_.transform.rotation.x = q.x();
+    t_.transform.rotation.y = q.y();
+    t_.transform.rotation.z = q.z();
+    t_.transform.rotation.w = q.w();
+
+    tf_broadcaster_->sendTransform(t_);
   }
 
   void initial_pose_callback(
@@ -152,25 +179,24 @@ private:
   {
     // RCLCPP_INFO_STREAM(this->get_logger(), "initial_pose_callback");
 
-    turtlelib::Configuration_q q_diff;
-    q_diff.x_ = req->x;
-    q_diff.y_ = req->y;
-    q_diff.theta_ = req->theta;
+    // turtlelib::Configuration_q q_diff;
+    q_diff_.x_ = req->x;
+    q_diff_.y_ = req->y;
+    q_diff_.theta_ = req->theta;
 
-    diff_drive_.set_configuration(q_diff);
+    diff_drive_.set_configuration(q_diff_);
 
     // res->msg_feedback = "Initial pose set";
-
     /// need to publish the odometry message
     nav_msgs::msg::Odometry odom;
     odom.header.stamp = this->now();
     odom.header.frame_id = odom_id_;
     odom.child_frame_id = body_id_;
-    odom.pose.pose.position.x = q_diff.x_;
-    odom.pose.pose.position.y = q_diff.y_;
+    odom.pose.pose.position.x = q_diff_.x_;
+    odom.pose.pose.position.y = q_diff_.y_;
     odom.pose.pose.position.z = 0.0;
     tf2::Quaternion q;
-    q.setRPY(0, 0, q_diff.theta_);
+    q.setRPY(0.0, 0.0, q_diff_.theta_);
     odom.pose.pose.orientation.x = q.x();
     odom.pose.pose.orientation.y = q.y();
     odom.pose.pose.orientation.z = q.z();
@@ -182,14 +208,15 @@ private:
     t_.header.frame_id = odom_id_;
     t_.child_frame_id = body_id_;
 
-    t_.transform.translation.x = q_diff.x_;
-    t_.transform.translation.y = q_diff.y_;
+    t_.transform.translation.x = q_diff_.x_;
+    t_.transform.translation.y = q_diff_.y_;
     t_.transform.rotation.x = q.x();
     t_.transform.rotation.y = q.y();
     t_.transform.rotation.z = q.z();
     t_.transform.rotation.w = q.w();
 
     tf_broadcaster_->sendTransform(t_);
+
 
   }
 
@@ -207,7 +234,7 @@ private:
   std::string wheel_right_;
 
   turtlelib::DiffDrive diff_drive_;
-  turtlelib::Configuration_q configuration_;
+  turtlelib::Configuration_q q_diff_;
   turtlelib::WheelPositions_phi wheel_positions_;
 
 };

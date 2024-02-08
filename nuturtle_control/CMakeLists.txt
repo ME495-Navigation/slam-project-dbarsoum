@@ -23,7 +23,6 @@ find_package(nuturtlebot_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(catch_ros2 REQUIRED)
-# find_package(nuturtle_control REQUIRED)
 
 set(srv_files
 "srv/InitialPose.srv"

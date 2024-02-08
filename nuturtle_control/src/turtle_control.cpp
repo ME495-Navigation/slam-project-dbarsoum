@@ -23,8 +23,8 @@ public:
   {
     RCLCPP_INFO(this->get_logger(), "turtle_control has been started.");
 
-    this->declare_parameter("wheel_radius", -1.0);
-    wheel_radius_ = this->get_parameter("wheel_radius").as_double();
+    declare_parameter("wheel_radius", -1.0);
+    wheel_radius_ = get_parameter("wheel_radius").as_double();
     // RCLCPP_INFO_STREAM(get_logger(), "wheel radius: " << wheel_radius_);
     if (wheel_radius_ < 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_radius error");

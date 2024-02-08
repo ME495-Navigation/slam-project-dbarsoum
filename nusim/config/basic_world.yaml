@@ -1,9 +1,9 @@
 /**:
   ros__parameters:
     rate: 200.0
-    x0: 0.0
-    y0: 0.0
-    theta0: 0.0
+    x0: -0.5
+    y0: 0.7
+    theta0: 1.28
     arena_x_length: 5.0  # length of arena in world x direction
     arena_y_length: 13.0  # length of arena in world y direction
     obstacle_radius: 0.038  # radius of obstacle
