@@ -254,3 +254,39 @@ TEST_CASE("Test DiffDrive", "[DiffDrive_backward_leftturn]")
 //     /// make sure twist cannot be accomplished with current configuration
 //     REQUIRE_THAT(wheel_velocities.phi_left, Catch::Matchers::WithinAbs(0.0, 1e-12));
 // }
+
+TEST_CASE("Test DiffDrive", "[DiffDrive_try]")
+{
+    double wheel_track = 0.160;
+    double wheel_radius = 0.033;
+    DiffDrive diff_drive(wheel_track, wheel_radius);
+    WheelPositions_phi new_wheel_positions;
+    Configuration_q config;
+
+    new_wheel_positions.phi_left = 0.01392;
+    new_wheel_positions.phi_right = 0.01632;
+    diff_drive.update_configuration(new_wheel_positions);
+
+    // config.theta_= 0.00049896;
+    // config.x_ = 1.23493e-07;
+    // config.y_ = 0.000495;
+
+    std::cout << diff_drive.get_configuration().theta_ << std::endl;
+    std::cout << diff_drive.get_configuration().x_ << std::endl;
+    std::cout << diff_drive.get_configuration().y_ << std::endl;
+
+
+    // REQUIRE_THAT(diff_drive.get_configuration().theta_, Catch::Matchers::WithinAbs(config.theta_, 1e-12));
+    // REQUIRE_THAT(diff_drive.get_configuration().x_, Catch::Matchers::WithinAbs(config.x_, 1e-12));
+    // REQUIRE_THAT(diff_drive.get_configuration().y_, Catch::Matchers::WithinAbs(config.y_, 1e-12));
+
+    // diff_drive = DiffDrive(wheel_track, wheel_radius);
+    // Twist2D twist;
+    // twist.omega = PI / 2.0;
+    // twist.x = -(3.0 * PI) / 4.0;
+    // twist.y = 0.0;
+
+    // WheelPositions_phi wheel_velocities = diff_drive.compute_wheel_velocities(twist);
+    // REQUIRE_THAT(wheel_velocities.phi_left, Catch::Matchers::WithinAbs(new_wheel_positions.phi_left, 1e-12));
+    // REQUIRE_THAT(wheel_velocities.phi_right, Catch::Matchers::WithinAbs(new_wheel_positions.phi_right, 1e-12));
+}

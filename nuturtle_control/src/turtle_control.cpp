@@ -72,7 +72,7 @@ public:
       "cmd_vel", 10, std::bind(&TurtleControl::cmd_vel_callback, this, std::placeholders::_1));
 
     sensor_data_sub_ = this->create_subscription<nuturtlebot_msgs::msg::SensorData>(
-      "sensor_data", 10, std::bind(
+      "/red/sensor_data", 10, std::bind(
         &TurtleControl::sensor_data_callback, this,
         std::placeholders::_1));
 
@@ -85,6 +85,8 @@ public:
 
     diff_drive_ = turtlelib::DiffDrive(track_width_, wheel_radius_);
 
+    // time
+    previous_ = 0.0;
     // /// timers
     // timer_ = this->create_wall_timer(
     //   std::chrono::duration<double>(1.0 / 100.0), std::bind(&TurtleControl::timer_callback, this));
@@ -131,11 +133,8 @@ private:
   void sensor_data_callback(const nuturtlebot_msgs::msg::SensorData::SharedPtr msg)
   {
     RCLCPP_INFO_STREAM(this->get_logger(), "sensor_data_callback");
-
-    // convert encoder ticks to radians
-    // double left_encoder = msg->left_encoder / encoder_ticks_per_rad_;
-    // double right_encoder = msg->right_encoder / encoder_ticks_per_rad_;
-
+    auto current_time = msg->stamp.sec + msg->stamp.nanosec * 1e-9;
+    
     RCLCPP_INFO_STREAM(this->get_logger(), "left_encoder: " << msg->left_encoder);
     RCLCPP_INFO_STREAM(this->get_logger(), "right_encoder: " << msg->right_encoder);
 
@@ -148,15 +147,10 @@ private:
     joint_state.header.stamp = now();
     joint_state.name = {"left_wheel_joint", "right_wheel_joint"};
     joint_state.position = {wheel_positions.phi_left, wheel_positions.phi_right};
-    // joint_state.velocity = {} # subtract new from old
-    // joint_state.name.resize(2);
-    // joint_state.position.resize(2);
-    // joint_state.effort.resize(2);
-
-    // joint_state.name[0] = "left_wheel_joint";
-    // joint_state.position[0] = wheel_positions.phi_left;
-    // joint_state.name[1] = "right_wheel_joint";
-    // joint_state.position[1] = wheel_positions.phi_right;
+    // previous_ = current_time;
+    double dt = current_time - previous_;
+    previous_ = current_time;
+    joint_state.velocity = {wheel_positions.phi_left / dt, wheel_positions.phi_right / dt};
 
     joint_state_pub_->publish(joint_state);
   }
@@ -172,6 +166,7 @@ private:
   double motor_cmd_per_rad_sec_;
   double encoder_ticks_per_rad_;
   double collision_radius_;
+  double previous_;
 
   turtlelib::DiffDrive diff_drive_;
 

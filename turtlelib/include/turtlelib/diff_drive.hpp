@@ -16,10 +16,10 @@ namespace turtlelib
     struct WheelPositions_phi
     {
         /// \brief left wheel position
-        double phi_left;
+        double phi_left = 0.0;
 
         /// \brief right wheel position
-        double phi_right;
+        double phi_right = 0.0;
     };
 
     /// \brief models the configuration of a differential drive robot
@@ -27,13 +27,13 @@ namespace turtlelib
     struct Configuration_q
     {
         /// \brief x position of robot
-        double x_;
+        double x_ = 0.0;
 
         /// \brief y position of robot
-        double y_;
+        double y_ = 0.0;
 
         /// \brief orientation of robot
-        double theta_;
+        double theta_ = 0.0;
     };
 
     /// \brief models the kinematics of a differential drive robot
@@ -62,6 +62,13 @@ namespace turtlelib
         Configuration_q get_configuration() const 
         { 
             return configuration_;
+        }
+
+        /// \brief get wheel positions of robot
+        /// \return wheel positions
+        WheelPositions_phi get_wheel_positions() const 
+        { 
+            return wheel_positions_;
         }
 
         /// \brief 

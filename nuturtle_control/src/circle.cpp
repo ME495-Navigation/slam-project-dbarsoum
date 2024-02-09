@@ -23,7 +23,7 @@ class Circle : public rclcpp::Node
 {
 public:
   Circle()
-  : Node("circle")
+  : Node("circle_node")
   {
     RCLCPP_INFO(this->get_logger(), "circle has been started.");
 

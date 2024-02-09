@@ -18,8 +18,6 @@
             <param from="$(find-pkg-share nusim)/config/basic_world.yaml"/>
             <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
             <remap from="wheel_cmd" to="red/wheel_cmd" />
-            <!-- <remap from="joint_states" to="red/joint_states" /> -->
-            <remap from="sensor_data" to="red/sensor_data" />
         </node>
 
         <node pkg="nuturtle_control" exec="odom_node" name="odom_node">
@@ -41,7 +39,7 @@
             <arg name="use_rviz" value="false" />
             <arg name="color" value="red" />
             <arg name="use_jsp" value="true" />
-            <!-- getting rd/joint_states from here bc of jsp -->
+            <!-- getting red/joint_states from here bc of jsp -->
         </include>
 
         <node pkg="tf2_ros" exec="static_transform_publisher" name="nusim_world_to_odom" args="--frame-id nusim/world --child-frame-id odom" />
