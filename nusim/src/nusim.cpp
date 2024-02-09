@@ -202,11 +202,8 @@ private:
     /// need to convert the wheel commands (mcu) to rad/s
     wheel_velocity_left_ = msg->left_velocity * motor_cmd_per_rad_sec_;  // need rad/s so need to multiply by motor_cmd_per_rad_sec_
     wheel_velocity_right_ = msg->right_velocity * motor_cmd_per_rad_sec_;
-    RCLCPP_INFO_STREAM(this->get_logger(), "wheel_cmd_callback: " << wheel_velocity_left_ << " " << wheel_velocity_right_);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "wheel_cmd_callback: " << wheel_velocity_left_ << " " << wheel_velocity_right_);
 
-    // turtlelib::WheelPositions_phi wheel_positions;
-    // RCLCPP_INFO_STREAM(this->get_logger(), "wheel_positions BEFORE: " << wheel_positions.phi_left << " " << wheel_positions.phi_right);
-    // turtlelib::DiffDrive diff_drive_(0.160, 0.033);
     diff_drive_.update_configuration(wheel_positions_);  // fk
     q_diff_ = diff_drive_.get_configuration();
     wheel_positions_ = diff_drive_.get_wheel_positions();
@@ -214,23 +211,8 @@ private:
     RCLCPP_INFO_STREAM(this->get_logger(), "LOOK HERE: " << wheel_velocity_left_*(1/rate_) << " AND HERE: " << wheel_velocity_right_*(1/rate_));
     wheel_positions_.phi_left = wheel_positions_.phi_left + wheel_velocity_left_ * (1 / rate_);  // rad
     wheel_positions_.phi_right = wheel_positions_.phi_right + wheel_velocity_right_ * (1 / rate_);
-    RCLCPP_INFO_STREAM(this->get_logger(), "wheel_positions: " << wheel_positions_.phi_left << " " << wheel_positions_.phi_right);
 
-    // update configuration
-    /// might need to put this in the timer instead of here
-    // turtlelib::DiffDrive diff_drive_(0.160, 0.033);
-    // diff_drive_.update_configuration(wheel_positions);  // fk
-    // q_diff_ = diff_drive_.get_configuration();
-    // wheel_positions_ = diff_drive_.get_wheel_positions();
-    // wheel_positions.phi_left = wheel_positions_.phi_left;
-    // wheel_positions.phi_right = wheel_positions_.phi_right;
-
-    RCLCPP_INFO_STREAM(this->get_logger(), "wheel_positions AFTER: " << wheel_positions_.phi_left << " " << wheel_positions_.phi_right);
-
-    // RCLCPP_INFO_STREAM(this->get_logger(), "x: " << diff_drive_.get_configuration().x_ << " y: " << diff_drive_.get_configuration().y_ << " theta: " << diff_drive_.get_configuration().theta_);
-    RCLCPP_INFO_STREAM(this->get_logger(), "x: " << q_diff_.x_ << " y: " << q_diff_.y_ << " theta: " << q_diff_.theta_);
     // update transformation
-    // updateTransform(diff_drive_.get_configuration().x_, diff_drive_.get_configuration().y_, diff_drive_.get_configuration().theta_);
     updateTransform(q_diff_.x_, q_diff_.y_, q_diff_.theta_);
   }
 

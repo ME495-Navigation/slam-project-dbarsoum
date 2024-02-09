@@ -81,25 +81,15 @@ public:
       "wheel_cmd", 10);
 
     joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>(
-      "joint_states", 10);
+      "/blue/joint_states", 10);
 
     diff_drive_ = turtlelib::DiffDrive(track_width_, wheel_radius_);
 
     // time
     previous_ = 0.0;
-    // /// timers
-    // timer_ = this->create_wall_timer(
-    //   std::chrono::duration<double>(1.0 / 100.0), std::bind(&TurtleControl::timer_callback, this));
-
   }
 
 private:
-  // /// timer callback
-  // void timer_callback()
-  // {
-  //   RCLCPP_INFO_STREAM(this->get_logger(), "timer_callback");
-  // }
-
   /// subscriber callbacks
   void cmd_vel_callback(const geometry_msgs::msg::Twist::SharedPtr msg)
   {
@@ -111,7 +101,7 @@ private:
     twist.omega = msg->angular.z;
     turtlelib::WheelPositions_phi wheel_positions = diff_drive_.compute_wheel_velocities(twist); // rad/s
 
-    RCLCPP_INFO_STREAM(this->get_logger(), "left_velocity: " << wheel_positions.phi_left << " right_velocity: " << wheel_positions.phi_right);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "left_velocity: " << wheel_positions.phi_left << " right_velocity: " << wheel_positions.phi_right);
 
     wheel_positions.phi_left /= motor_cmd_per_rad_sec_;
     wheel_positions.phi_right /= motor_cmd_per_rad_sec_;
@@ -125,14 +115,14 @@ private:
     wheel_cmd.left_velocity = wheel_positions.phi_left; // mcu
     wheel_cmd.right_velocity = wheel_positions.phi_right; // mcu
 
-    RCLCPP_INFO_STREAM(this->get_logger(), "left_velocity_mcu: " << wheel_cmd.left_velocity << " right_velocity_mcu: " << wheel_cmd.right_velocity);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "left_velocity_mcu: " << wheel_cmd.left_velocity << " right_velocity_mcu: " << wheel_cmd.right_velocity);
 
     wheel_cmd_pub_->publish(wheel_cmd);
   }
 
   void sensor_data_callback(const nuturtlebot_msgs::msg::SensorData::SharedPtr msg)
   {
-    RCLCPP_INFO_STREAM(this->get_logger(), "sensor_data_callback");
+    // RCLCPP_INFO_STREAM(this->get_logger(), "sensor_data_callback");
     auto current_time = msg->stamp.sec + msg->stamp.nanosec * 1e-9;
     
     RCLCPP_INFO_STREAM(this->get_logger(), "left_encoder: " << msg->left_encoder);
