@@ -74,7 +74,7 @@ public:
 
     /// subscribers
     joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-      "joint_states", 10, std::bind(&Odometry::joint_state_callback, this, std::placeholders::_1));
+      "/blue/joint_states", 10, std::bind(&Odometry::joint_state_callback, this, std::placeholders::_1));
 
     /// publish odometry messages
     odometry_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
@@ -89,7 +89,8 @@ public:
     /// Initialize the transform broadcaster
     tf_broadcaster_ =
       std::make_unique<tf2_ros::TransformBroadcaster>(*this);
-
+    
+    diff_drive_ = turtlelib::DiffDrive(track_width_, wheel_radius_);
     /// timers
     timer_ = this->create_wall_timer(
       std::chrono::duration<double>(1.0 / 100.0), std::bind(&Odometry::timer_callback, this));
@@ -110,6 +111,7 @@ private:
     odom.pose.pose.position.z = 0.0;
     tf2::Quaternion q;
     q.setRPY(0.0, 0.0, q_diff_.theta_);
+    // q.normalize();
     odom.pose.pose.orientation.x = q.x();
     odom.pose.pose.orientation.y = q.y();
     odom.pose.pose.orientation.z = q.z();
@@ -152,6 +154,7 @@ private:
     odom.pose.pose.position.z = 0.0;
     tf2::Quaternion q;
     q.setRPY(0.0, 0.0, q_diff_.theta_);
+    // q.normalize();
     odom.pose.pose.orientation.x = q.x();
     odom.pose.pose.orientation.y = q.y();
     odom.pose.pose.orientation.z = q.z();
@@ -197,6 +200,7 @@ private:
     odom.pose.pose.position.z = 0.0;
     tf2::Quaternion q;
     q.setRPY(0.0, 0.0, q_diff_.theta_);
+    // q.normalize();
     odom.pose.pose.orientation.x = q.x();
     odom.pose.pose.orientation.y = q.y();
     odom.pose.pose.orientation.z = q.z();

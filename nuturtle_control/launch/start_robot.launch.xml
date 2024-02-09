@@ -42,7 +42,7 @@
             <!-- getting red/joint_states from here bc of jsp -->
         </include>
 
-        <node pkg="tf2_ros" exec="static_transform_publisher" name="nusim_world_to_odom" args="--frame-id nusim/world --child-frame-id odom" />
+        <node pkg="tf2_ros" exec="static_transform_publisher" name="nusim_world_to_odom" args="--frame-id nusim/world --child-frame-id odom"/>
 
     </group>
 

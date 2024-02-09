@@ -1,6 +1,7 @@
 # Lines that begin with a # are comments
 # set the minimum required version of cmake, usually the first line
 cmake_minimum_required(VERSION 3.22)
+# cmake_minimum_required(VERSION 2.13.8)
 
 # project_name sets the name of the project and causes cmake to
 # find the c and c++ compilers
