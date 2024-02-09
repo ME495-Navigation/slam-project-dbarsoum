@@ -156,7 +156,7 @@ private:
     odom.pose.pose.orientation.y = q.y();
     odom.pose.pose.orientation.z = q.z();
     odom.pose.pose.orientation.w = q.w();
-    odometry_publisher_->publish(odom);
+    // odometry_publisher_->publish(odom);
 
     /// need to publish the odometry transform
     t_.header.stamp = this->get_clock()->now();
@@ -170,7 +170,7 @@ private:
     t_.transform.rotation.z = q.z();
     t_.transform.rotation.w = q.w();
 
-    tf_broadcaster_->sendTransform(t_);
+    // tf_broadcaster_->sendTransform(t_);
   }
 
   void initial_pose_callback(
@@ -216,8 +216,6 @@ private:
     t_.transform.rotation.w = q.w();
 
     tf_broadcaster_->sendTransform(t_);
-
-
   }
 
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;

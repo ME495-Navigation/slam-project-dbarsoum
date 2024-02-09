@@ -28,8 +28,8 @@ public:
     RCLCPP_INFO(this->get_logger(), "circle has been started.");
 
     /// parameters
-    this->declare_parameter("frequency", 100.0);
-    frequency_ = this->get_parameter("frequency").as_double();
+    this->declare_parameter("frequency", 100);
+    frequency_ = get_parameter("frequency").as_int();
 
     /// publishers
     cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
@@ -49,15 +49,16 @@ public:
       std::bind(&Circle::stop_callback, this, std::placeholders::_1, std::placeholders::_2));
 
     /// timer
-    timer_ = this->create_wall_timer(
-      std::chrono::duration<double>(100.0), std::bind(&Circle::timer_callback, this));
+    timer_ = create_wall_timer(
+      std::chrono::milliseconds(1000 / frequency_),
+      std::bind(&Circle::timer_callback, this));
 
   }
 
 private:
   void timer_callback()
   {
-    RCLCPP_INFO(this->get_logger(), "circle timer callback");
+    // RCLCPP_INFO(this->get_logger(), "circle timer callback");
 
     /// publish the velocity when the robot is not stopped
     if (turtlelib::almost_equal(velocity_, 0.0, 1e-6)) {
@@ -66,15 +67,15 @@ private:
     } else {
       cmd_vel_twist_.linear.x = velocity_;
       cmd_vel_twist_.angular.z = velocity_ / radius_;
-      cmd_vel_pub_->publish(cmd_vel_twist_);
     }
+    cmd_vel_pub_->publish(cmd_vel_twist_);
   }
 
   void control_callback(
     const std::shared_ptr<nuturtle_control::srv::Control::Request> req,
     const std::shared_ptr<nuturtle_control::srv::Control::Response>)
   {
-    RCLCPP_INFO(this->get_logger(), "circle control callback");
+    // RCLCPP_INFO(this->get_logger(), "circle control callback");
     velocity_ = req->velocity;  // angular velocity
     radius_ = req->radius;
 
@@ -108,7 +109,7 @@ private:
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr stop_service_;
   geometry_msgs::msg::Twist cmd_vel_twist_;
 
-  double frequency_;
+  int frequency_;
   float velocity_;
   float radius_;
 

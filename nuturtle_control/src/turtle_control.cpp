@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 #include "rclcpp/rclcpp.hpp"
 #include "turtlelib/diff_drive.hpp"
@@ -23,45 +24,45 @@ public:
   {
     RCLCPP_INFO(this->get_logger(), "turtle_control has been started.");
 
-    declare_parameter("wheel_radius", -1.0);
+    declare_parameter("wheel_radius", 0.0);
     wheel_radius_ = get_parameter("wheel_radius").as_double();
     // RCLCPP_INFO_STREAM(get_logger(), "wheel radius: " << wheel_radius_);
-    if (wheel_radius_ < 0.0) {
+    if (wheel_radius_ == 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_radius error");
       rclcpp::shutdown();
     }
 
-    this->declare_parameter("track_width", -1.0);
-    double track_width_ = this->get_parameter("track_width").as_double();
-    if (track_width_ < 0.0) {
+    declare_parameter("track_width", 0.0);
+    track_width_ = get_parameter("track_width").as_double();
+    if (track_width_ == 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "track_width error");
       rclcpp::shutdown();
     }
 
-    this->declare_parameter("motor_cmd_max", -1.0);
-    double motor_cmd_speed_ = this->get_parameter("motor_cmd_max").as_double();
-    if (motor_cmd_speed_ < 0.0) {
+    declare_parameter("motor_cmd_max", 0.0);
+    motor_cmd_speed_ = get_parameter("motor_cmd_max").as_double();
+    if (motor_cmd_speed_ == 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "motor_cmd_speed error");
       rclcpp::shutdown();
     }
 
-    this->declare_parameter("motor_cmd_per_rad_sec", -1.0);
-    double motor_cmd_per_rad_sec_ = this->get_parameter("motor_cmd_per_rad_sec").as_double();
-    if (motor_cmd_per_rad_sec_ < 0.0) {
+    declare_parameter("motor_cmd_per_rad_sec", 0.0);
+    motor_cmd_per_rad_sec_ = get_parameter("motor_cmd_per_rad_sec").as_double();
+    if (motor_cmd_per_rad_sec_ == 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "motor_cmd_per_rad_sec error");
       rclcpp::shutdown();
     }
 
-    this->declare_parameter("encoder_ticks_per_rad", -1.0);
-    double encoder_ticks_per_rad_ = this->get_parameter("encoder_ticks_per_rad").as_double();
-    if (encoder_ticks_per_rad_ < 0.0) {
+    declare_parameter("encoder_ticks_per_rad", 0.0);
+    encoder_ticks_per_rad_ = get_parameter("encoder_ticks_per_rad").as_double();
+    if (encoder_ticks_per_rad_ == 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "encoder_ticks_per_rad error");
       rclcpp::shutdown();
     }
 
-    this->declare_parameter("collision_radius", -1.0);
-    double collision_radius_ = this->get_parameter("collision_radius").as_double();
-    if (collision_radius_ < 0.0) {
+    declare_parameter("collision_radius", 0.0);
+    collision_radius_ = get_parameter("collision_radius").as_double();
+    if (collision_radius_ == 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "collision_radius error");
       rclcpp::shutdown();
     }
@@ -101,16 +102,28 @@ private:
   void cmd_vel_callback(const geometry_msgs::msg::Twist::SharedPtr msg)
   {
     // RCLCPP_INFO_STREAM(this->get_logger(), "cmd_vel_callback");
-
+    /// need to go from rad/s to mcu
     turtlelib::Twist2D twist;
     twist.x = msg->linear.x;
     twist.y = msg->linear.y;
     twist.omega = msg->angular.z;
-    turtlelib::WheelPositions_phi wheel_positions = diff_drive_.compute_wheel_velocities(twist);
+    turtlelib::WheelPositions_phi wheel_positions = diff_drive_.compute_wheel_velocities(twist); // rad/s
+
+    RCLCPP_INFO_STREAM(this->get_logger(), "left_velocity: " << wheel_positions.phi_left << " right_velocity: " << wheel_positions.phi_right);
+
+    wheel_positions.phi_left /= motor_cmd_per_rad_sec_;
+    wheel_positions.phi_right /= motor_cmd_per_rad_sec_;
+    RCLCPP_INFO_STREAM(this->get_logger(), "motor_cmd_per_rad_sec_: " << motor_cmd_per_rad_sec_);
+
+    /// saturation
+    wheel_positions.phi_left = std::clamp(wheel_positions.phi_left, -motor_cmd_speed_, motor_cmd_speed_);
+    wheel_positions.phi_right = std::clamp(wheel_positions.phi_right, -motor_cmd_speed_, motor_cmd_speed_);
 
     nuturtlebot_msgs::msg::WheelCommands wheel_cmd;
-    wheel_cmd.left_velocity = wheel_positions.phi_left;
-    wheel_cmd.right_velocity = wheel_positions.phi_right;
+    wheel_cmd.left_velocity = wheel_positions.phi_left; // mcu
+    wheel_cmd.right_velocity = wheel_positions.phi_right; // mcu
+
+    RCLCPP_INFO_STREAM(this->get_logger(), "left_velocity_mcu: " << wheel_cmd.left_velocity << " right_velocity_mcu: " << wheel_cmd.right_velocity);
 
     wheel_cmd_pub_->publish(wheel_cmd);
   }
@@ -122,6 +135,9 @@ private:
     // convert encoder ticks to radians
     // double left_encoder = msg->left_encoder / encoder_ticks_per_rad_;
     // double right_encoder = msg->right_encoder / encoder_ticks_per_rad_;
+
+    RCLCPP_INFO_STREAM(this->get_logger(), "left_encoder: " << msg->left_encoder);
+    RCLCPP_INFO_STREAM(this->get_logger(), "right_encoder: " << msg->right_encoder);
 
     turtlelib::WheelPositions_phi wheel_positions;
     wheel_positions.phi_left = msg->left_encoder / encoder_ticks_per_rad_;

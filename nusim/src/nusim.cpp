@@ -14,6 +14,10 @@
 #include "nusim/srv/teleport.hpp"
 #include "visualization_msgs/msg/marker.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
+#include "nuturtlebot_msgs/msg/sensor_data.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
+#include "nuturtlebot_msgs/msg/wheel_commands.hpp"
+#include "turtlelib/diff_drive.hpp"
 
 
 using namespace std::chrono_literals;
@@ -54,20 +58,68 @@ public:
       rclcpp::shutdown();
     }
 
-    // RCLCPP_INFO(this->get_logger(), "Teleporting turtle to (%f, %f, %f).", x0_, y0_, theta0_);
+    declare_parameter("wheel_radius", -1.0);
+    wheel_radius_ = get_parameter("wheel_radius").as_double();
+    // RCLCPP_INFO_STREAM(get_logger(), "wheel radius: " << wheel_radius_);
+    // if (wheel_radius_ < 0.0) {
+    //   RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_radius error");
+    //   rclcpp::shutdown();
+    // }
+
+    declare_parameter("track_width", -1.0);
+    double track_width_ = get_parameter("track_width").as_double();
+    // if (track_width_ < 0.0) {
+    //   RCLCPP_ERROR_STREAM(this->get_logger(), "track_width error");
+    //   rclcpp::shutdown();
+    // }
+
+    declare_parameter("motor_cmd_max", -1.0);
+    double motor_cmd_speed_ = get_parameter("motor_cmd_max").as_double();
+    // if (motor_cmd_speed_ < 0.0) {
+    //   RCLCPP_ERROR_STREAM(this->get_logger(), "motor_cmd_speed error");
+    //   rclcpp::shutdown();
+    // }
+
+    declare_parameter("motor_cmd_per_rad_sec", -1.0);
+    double motor_cmd_per_rad_sec_ = get_parameter("motor_cmd_per_rad_sec").as_double();
+    // if (motor_cmd_per_rad_sec_ < 0.0) {
+    //   RCLCPP_ERROR_STREAM(this->get_logger(), "motor_cmd_per_rad_sec error");
+    //   rclcpp::shutdown();
+    // }
+
+    declare_parameter("encoder_ticks_per_rad", -1.0);
+    double encoder_ticks_per_rad_ = get_parameter("encoder_ticks_per_rad").as_double();
+    // if (encoder_ticks_per_rad_ < 0.0) {
+    //   RCLCPP_ERROR_STREAM(this->get_logger(), "encoder_ticks_per_rad error");
+    //   rclcpp::shutdown();
+    // }
+    RCLCPP_INFO_STREAM(get_logger(), "wheel radius: " << wheel_radius_);
+    RCLCPP_INFO_STREAM(get_logger(), "track width: " << track_width_);
+    RCLCPP_INFO_STREAM(get_logger(), "motor cmd speed: " << motor_cmd_speed_);
+    RCLCPP_INFO_STREAM(get_logger(), "motor cmd per rad sec: " << motor_cmd_per_rad_sec_);
+    RCLCPP_INFO_STREAM(get_logger(), "encoder ticks per rad: " << encoder_ticks_per_rad_);
+
 
     /// Initialize the transform broadcaster
     tf_broadcaster_ =
       std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
     /// creates a publisher
-    publisher_ = this->create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
+    timestep_publisher_ = this->create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
     rclcpp::QoS qos_policy = rclcpp::QoS(rclcpp::KeepLast(10)).transient_local();
     marker_pub_ =
       this->create_publisher<visualization_msgs::msg::MarkerArray>("~/walls", qos_policy);
     obstacle_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
       "~/obstacles",
       qos_policy);
+
+    sensor_data_pub_ = this->create_publisher<nuturtlebot_msgs::msg::SensorData>(
+      "sensor_data", 10); // sensor data gets remapped in launch file
+
+    /// subscribers
+    wheel_cmd_sub_ = this->create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
+      "wheel_cmd", 10, std::bind(&Nusim::wheel_cmd_callback, this, std::placeholders::_1));
+    /// wheel_cmd gets remapped in launch file
 
     /// services
     service_ =
@@ -80,8 +132,10 @@ public:
       std::bind(&Nusim::teleport_callback, this, std::placeholders::_1, std::placeholders::_2));
 
     /// timers
+    // timer_ = this->create_wall_timer(
+    //   std::chrono::duration<double>(1.0 / rate_), std::bind(&Nusim::timer_callback, this));
     timer_ = this->create_wall_timer(
-      std::chrono::duration<double>(1.0 / rate_), std::bind(&Nusim::timer_callback, this));
+      (1s / rate_), std::bind(&Nusim::timer_callback, this));
   }
 
 private:
@@ -92,22 +146,10 @@ private:
     /// need the timestep in ms
     message.data = timestep_++ *(1 / rate_) * 1e3;
     // RCLCPP_INFO(this->get_logger(), "Publishing: '%ld'", message.data);
-    publisher_->publish(message);
+    timestep_publisher_->publish(message);
 
     // Publish the transformation
-    t_.header.stamp = this->get_clock()->now();
-    t_.header.frame_id = "nusim/world";
-    t_.child_frame_id = "red/base_footprint";
-
-    t_.transform.translation.x = x0_;
-    t_.transform.translation.y = y0_;
-    tf2::Quaternion q;
-    q.setRPY(0, 0, theta0_);
-    t_.transform.rotation.x = q.x();
-    t_.transform.rotation.y = q.y();
-    t_.transform.rotation.z = q.z();
-    t_.transform.rotation.w = q.w();
-
+    updateTransform(x0_, y0_, theta0_);
     tf_broadcaster_->sendTransform(t_);
 
     // Publish the markers
@@ -124,6 +166,12 @@ private:
       addObstacle(obstacle_array, obstacles_x_[i], obstacles_y_[i], obstacles_r_[i], "obstacle", i);
     }
     obstacle_pub_->publish(obstacle_array);
+
+    publish_sensor_data();
+
+    // updateTransform(x0_, y0_, theta0_);
+    tf_broadcaster_->sendTransform(t_);
+
   }
 
   void reset_callback(
@@ -152,22 +200,35 @@ private:
 
     // Read message content and assign it to
     // corresponding tf variables
-    t_.header.stamp = this->get_clock()->now();
-    t_.header.frame_id = "nusim/world";
-    t_.child_frame_id = "red/base_footprint";
-
-    t_.transform.translation.x = x0_;
-    t_.transform.translation.y = y0_;
-
-    tf2::Quaternion q;
-    q.setRPY(0, 0, theta0_);
-    t_.transform.rotation.x = q.x();
-    t_.transform.rotation.y = q.y();
-    t_.transform.rotation.z = q.z();
-    t_.transform.rotation.w = q.w();
-
-    // Send the transformation
+    updateTransform(x0_, y0_, theta0_);
     tf_broadcaster_->sendTransform(t_);
+  }
+
+  void wheel_cmd_callback(const nuturtlebot_msgs::msg::WheelCommands::SharedPtr msg)
+  {
+    /// need to convert the wheel commands (mcu) to rad/s
+    wheel_velocity_left_ = msg->left_velocity * motor_cmd_per_rad_sec_;  // need rad/s so need to multiply by motor_cmd_per_rad_sec_
+    wheel_velocity_right_ = msg->right_velocity * motor_cmd_per_rad_sec_;
+    // RCLCPP_INFO_STREAM(this->get_logger(), "wheel_cmd_callback: " << wheel_velocity_left_ << " " << wheel_velocity_right_);
+
+    // sensor_data_.left_encoder = wheel_velocity_left_ * encoder_ticks_per_rad_;
+    // sensor_data_.right_encoder = wheel_velocity_right_ * encoder_ticks_per_rad_;
+
+    // sensor_data_pub_->publish(sensor_data_);
+
+    // update configuration
+    q_diff_ = diff_drive_.get_configuration();
+
+    // update transformation
+    updateTransform(q_diff_.x_, q_diff_.y_, q_diff_.theta_);
+  }
+
+  void publish_sensor_data()
+  {
+    // RCLCPP_INFO_STREAM(this->get_logger(), "publish_sensor_data");
+    sensor_data_.left_encoder += wheel_velocity_left_ * encoder_ticks_per_rad_;
+    sensor_data_.right_encoder += wheel_velocity_right_ * encoder_ticks_per_rad_;
+    sensor_data_pub_->publish(sensor_data_);
   }
 
   void addWall(
@@ -245,10 +306,35 @@ private:
     marker_array.markers.push_back(marker);
   }
 
+  void updateTransform()
+  {
+    t_.header.stamp = this->get_clock()->now();
+    t_.header.frame_id = "nusim/world";
+    t_.child_frame_id = "red/base_footprint";
+  }
+
+  void updateTransform(double x, double y, double theta)
+  {
+    t_.header.stamp = this->get_clock()->now();
+    t_.header.frame_id = "nusim/world";
+    t_.child_frame_id = "red/base_footprint";
+    t_.transform.translation.x = x;
+    t_.transform.translation.y = y;
+    tf2::Quaternion q;
+    q.setRPY(0, 0, theta);
+    t_.transform.rotation.x = q.x();
+    t_.transform.rotation.y = q.y();
+    t_.transform.rotation.z = q.z();
+    t_.transform.rotation.w = q.w();
+  }
+
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr publisher_;
+  rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr timestep_publisher_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr obstacle_pub_;
+  rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_data_pub_;
+  // rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_states_pub_;
+  rclcpp::Subscription<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr wheel_cmd_sub_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
   rclcpp::Service<nusim::srv::Teleport>::SharedPtr service_teleport_;
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
@@ -261,9 +347,21 @@ private:
   double theta0_;
   double arena_x_length_;
   double arena_y_length_;
+  double wheel_radius_;
+  double track_width_;
+  double motor_cmd_speed_;
+  double motor_cmd_per_rad_sec_;
+  double encoder_ticks_per_rad_;
   std::vector<double> obstacles_x_;
   std::vector<double> obstacles_y_;
   std::vector<double> obstacles_r_;
+  double wheel_velocity_left_;
+  double wheel_velocity_right_;
+  nuturtlebot_msgs::msg::SensorData sensor_data_;
+  sensor_msgs::msg::JointState joint_state_;
+  turtlelib::DiffDrive diff_drive_;
+  turtlelib::Configuration_q q_diff_;
+
 
 };
 

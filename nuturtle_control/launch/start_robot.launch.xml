@@ -5,7 +5,7 @@
 
     <!-- cmd_src argument -->
     <node pkg="nuturtle_control" exec="circle_node" name="circle_node" if="$(eval '\'$(var cmd_src)\' == \'circle\'')" >
-        <param name="frequency" value="100.0"/>
+        <param name="frequency" value="100"/>
     </node>
 
     <node pkg="turtlebot3_teleop" exec="teleop_twist_keyboard" if="$(eval '\'$(var cmd_src)\' == \'teleop\'')" >
@@ -16,20 +16,22 @@
 
         <node pkg="nusim" exec="nusim_node" name="nusim_node" output="screen" >
             <param from="$(find-pkg-share nusim)/config/basic_world.yaml"/>
+            <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
             <remap from="wheel_cmd" to="red/wheel_cmd" />
-            <remap from="joint_states" to="red/joint_states" />
+            <!-- <remap from="joint_states" to="red/joint_states" /> -->
+            <remap from="sensor_data" to="red/sensor_data" />
         </node>
 
         <node pkg="nuturtle_control" exec="odom_node" name="odom_node">
             <param name="body_id" value="blue/base_footprint" />
             <param name="odom_id" value="odom" />
-            <param name="wheel_left" value="wheel_left" />
-            <param name="wheel_right" value="wheel_right" />
+            <param name="wheel_left" value="wheel_left_joint" />
+            <param name="wheel_right" value="wheel_right_joint" />
             <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
             <remap from="joint_states" to="blue/joint_states" />
         </node>
 
-        <node pkg="nuturtle_control" exec="turtle_control_node" >
+        <node pkg="nuturtle_control" exec="turtle_control_node" name="turtle_control_node">
             <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
             <remap from="wheel_cmd" to="red/wheel_cmd" />
             <remap from="joint_states" to="blue/joint_states" />
@@ -38,7 +40,8 @@
         <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py" >
             <arg name="use_rviz" value="false" />
             <arg name="color" value="red" />
-            <arg name="use_jsp" value="false" />
+            <arg name="use_jsp" value="true" />
+            <!-- getting rd/joint_states from here bc of jsp -->
         </include>
 
         <node pkg="tf2_ros" exec="static_transform_publisher" name="nusim_world_to_odom" args="--frame-id nusim/world --child-frame-id odom" />
