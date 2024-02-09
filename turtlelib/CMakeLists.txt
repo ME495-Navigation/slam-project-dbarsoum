@@ -7,7 +7,6 @@ cmake_minimum_required(VERSION 3.22)
 # find the c and c++ compilers
 project(turtlelib)
 
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 add_library(turtlelib src/geometry2d.cpp src/se2d.cpp src/svg.cpp src/diff_drive.cpp)
 

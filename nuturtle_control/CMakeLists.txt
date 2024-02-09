@@ -13,7 +13,6 @@ find_package(rclcpp REQUIRED)
 find_package(turtlelib REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
-find_package(nuturtle_description REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
@@ -22,7 +21,6 @@ find_package(visualization_msgs REQUIRED)
 find_package(nuturtlebot_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
-find_package(catch_ros2 REQUIRED)
 
 set(srv_files
 "srv/InitialPose.srv"
@@ -38,7 +36,6 @@ ament_target_dependencies(
   rclcpp
   std_msgs
   std_srvs
-  nuturtle_description
   geometry_msgs
   tf2
   tf2_ros
@@ -53,7 +50,6 @@ ament_target_dependencies(
   rclcpp
   std_msgs
   std_srvs
-  nuturtle_description
   geometry_msgs
   tf2
   tf2_ros
@@ -68,7 +64,6 @@ ament_target_dependencies(
   rclcpp
   std_msgs
   std_srvs
-  nuturtle_description
   geometry_msgs
   tf2
   tf2_ros
@@ -116,6 +111,7 @@ endif()
 if(BUILD_TESTING)
   include(CTest)
 
+find_package(catch_ros2 REQUIRED)
   ###############
   ## UNIT TEST ##
   ###############
@@ -132,7 +128,6 @@ if(BUILD_TESTING)
   rclcpp
   std_msgs
   std_srvs
-  nuturtle_description
   geometry_msgs
   tf2
   tf2_ros
@@ -166,7 +161,6 @@ if(BUILD_TESTING)
   rclcpp
   std_msgs
   std_srvs
-  nuturtle_description
   geometry_msgs
   tf2
   tf2_ros
@@ -201,7 +195,6 @@ if(BUILD_TESTING)
   rclcpp
   std_msgs
   std_srvs
-  nuturtle_description
   geometry_msgs
   tf2
   tf2_ros
