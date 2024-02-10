@@ -1,4 +1,7 @@
-Worked with: Megan Black, Fiona Neylon, Ananya, Courtney
+Worked with: Megan, Fiona, Ananya, Courtney, Nader, Anuj, Damien, Joel (in no particular order)
+
+These people helped me with debugging my code when it was not working, and I helped them with their code when they were stuck.
+I also helped them with understanding the concepts of the project.
 
 Used for Markers in Task C:
 https://docs.ros.org/en/diamondback/api/rviz/html/marker__test_8cpp_source.html

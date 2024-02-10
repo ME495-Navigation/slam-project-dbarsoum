@@ -1,3 +1,7 @@
+/// \file
+/// \brief turtle control node
+/// PARAMETERS
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -108,8 +112,12 @@ private:
     // RCLCPP_INFO_STREAM(this->get_logger(), "motor_cmd_per_rad_sec_: " << motor_cmd_per_rad_sec_);
 
     /// saturation
-    wheel_positions.phi_left = std::clamp(wheel_positions.phi_left, -motor_cmd_speed_, motor_cmd_speed_);
-    wheel_positions.phi_right = std::clamp(wheel_positions.phi_right, -motor_cmd_speed_, motor_cmd_speed_);
+    wheel_positions.phi_left = std::clamp(
+      wheel_positions.phi_left, -motor_cmd_speed_,
+      motor_cmd_speed_);
+    wheel_positions.phi_right = std::clamp(
+      wheel_positions.phi_right, -motor_cmd_speed_,
+      motor_cmd_speed_);
 
     nuturtlebot_msgs::msg::WheelCommands wheel_cmd;
     wheel_cmd.left_velocity = wheel_positions.phi_left; // mcu
@@ -124,7 +132,7 @@ private:
   {
     // RCLCPP_INFO_STREAM(this->get_logger(), "sensor_data_callback");
     auto current_time = msg->stamp.sec + msg->stamp.nanosec * 1e-9;
-    
+
     // RCLCPP_INFO_STREAM(this->get_logger(), "left_encoder: " << msg->left_encoder);
     // RCLCPP_INFO_STREAM(this->get_logger(), "right_encoder: " << msg->right_encoder);
 

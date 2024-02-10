@@ -89,7 +89,7 @@ public:
     /// Initialize the transform broadcaster
     tf_broadcaster_ =
       std::make_unique<tf2_ros::TransformBroadcaster>(*this);
-    
+
     diff_drive_ = turtlelib::DiffDrive(track_width_, wheel_radius_);
     /// timers
     timer_ = this->create_wall_timer(

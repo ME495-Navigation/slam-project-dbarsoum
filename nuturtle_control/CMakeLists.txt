@@ -21,6 +21,7 @@ find_package(visualization_msgs REQUIRED)
 find_package(nuturtlebot_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+# find_package(nuturtle_control REQUIRED)
 
 set(srv_files
 "srv/InitialPose.srv"
@@ -117,7 +118,7 @@ if(BUILD_TESTING)
   ###############
   # control test
   add_executable(turtle_control_test_node
-    test/turtle_control_test.cpp
+    test/turtle_control_test_node.cpp
   )
   # Linking a unit test executable with catch_ros2::catch_ros2_with_main
   # provides the default Catch2 main function to the executable.
@@ -170,6 +171,7 @@ if(BUILD_TESTING)
   nav_msgs)
 
   target_link_libraries(turtle_odom_test_node turtlelib::turtlelib "${cpp_typesupport_target}")
+  rosidl_target_interfaces(turtle_odom_test_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
   install(TARGETS
     turtle_odom_test_node

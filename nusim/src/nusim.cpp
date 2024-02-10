@@ -1,3 +1,43 @@
+/// \file
+/// \brief nusim node -- simulator in rviz
+///
+/// PARAMETERS:
+///     \param rate (double): Timer callback frequency [Hz]
+///     \param x0_ (double): Initial x coordinate of the robot [m]
+///     \param y0_ (double): Initial y coordinate of the robot [m]
+///     \param theta0_ (double): Initial theta angle of the robot [radians]
+///     \param arena_x_length_ (double): Length of arena in x direction [m]
+///     \param arena_y_length_ (double): Length of arena in y direction [m]
+///     \param obstacles_x_ (std::vector<double>): Vector of x coordinates for each obstacle [m]
+///     \param obstacles_y_ (std::vector<double>): Vector of y coordinates for each obstacle [m]
+///     \param obstacles_r_ (double): Radius of cylindrical obstacles [m]
+///     \param wheel_radius (double): The radius of the wheels [m]
+///     \param track_width (double): The distance between the wheels [m]
+///     \param motor_cmd_max (double): Maximum motor command unit value
+///     \param motor_cmd_per_rad_sec (double): Motor command unit per rad/s conversion factor
+///     \param encoder_ticks_per_rad (double): Encoder ticks per 1 radian turn
+///     \param collision_radius (double): Robot collision radius [m]
+///
+/// PUBLISHES:
+///     \param ~/timestep (std_msgs::msg::UInt64): Simulation timestep
+///     \param ~/obstacles (visualization_msgs::msg::MarkerArray): Marker for the obstacles in the arena
+///     \param ~/walls (visualization_msgs::msg::MarkerArray): Marker for the arena
+///     \param red/sensor_data (nuturtlebot_msgs::msg::SensorData): Current simulated sensor
+///            readings
+///
+/// SUBSCRIBES:
+///     \param red/wheel_cmd (nuturtlebot_msgs::msg::WheelCommands): Reads twist to update robot
+///
+/// SERVERS:
+///     \param ~/reset (std_srvs::srv::Empty): Resets simulation to initial state
+///     \param ~/teleport (nusim::srv::Teleport): Teleports robot to a specific pose
+///
+/// CLIENTS:
+///     None
+///
+/// BROADCASTERS:
+///     \param tf_broadcaster_ (tf2_ros::TransformBroadcaster): Broadcasts the robot
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -28,7 +68,23 @@ public:
   Nusim()
   : Node("nusim")
   {
-    // RCLCPP_INFO(this->get_logger(), "Nusim has been started.");
+    /// \brief function initializes takes in wheel commands and
+    ///        integrates to ticks to send sensor data to turtle control
+    /// \param rate (double): Timer callback frequency [Hz]
+    /// \param x0_ (double): Initial x coordinate of the robot [m]
+    /// \param y0_ (double): Initial y coordinate of the robot [m]
+    /// \param theta0_ (double): Initial theta angle of the robot [radians]
+    /// \param arena_x_length_ (double): Length of arena in x direction [m]
+    /// \param arena_y_length_ (double): Length of arena in y direction [m]
+    /// \param obstacles_x_ (std::vector<double>): Vector of x coordinates for each obstacle [m]
+    /// \param obstacles_y_ (std::vector<double>): Vector of y coordinates for each obstacle [m]
+    /// \param obstacles_r_ (double): Radius of cylindrical obstacles [m]
+    /// \param wheel_radius (double): The radius of the wheels [m]
+    /// \param track_width (double): The distance between the wheels [m]
+    /// \param motor_cmd_max (double): Maximum motor command unit value
+    /// \param motor_cmd_per_rad_sec (double): Motor command unit per rad/s conversion factor
+    /// \param encoder_ticks_per_rad (double): Encoder ticks per 1 radian turn
+    /// \param collision_radius (double): Robot collision radius [m]
 
     /// declares a parameter
     this->declare_parameter("rate", 200.0);
@@ -130,7 +186,7 @@ public:
       this->create_service<nusim::srv::Teleport>(
       "~/teleport",
       std::bind(&Nusim::teleport_callback, this, std::placeholders::_1, std::placeholders::_2));
-    
+
     diff_drive_ = turtlelib::DiffDrive(track_width_, wheel_radius_);
     /// timers
     timer_ = this->create_wall_timer(
@@ -138,6 +194,7 @@ public:
   }
 
 private:
+  /// \brief timer_callback that publishes the arena, obstacles, sensor data, and broadcasts the transform
   void timer_callback()
   {
     auto message = std_msgs::msg::UInt64();
@@ -166,7 +223,7 @@ private:
     tf_broadcaster_->sendTransform(t_);
 
   }
-
+  /// \brief reset_callback brings robot back to origin
   void reset_callback(
     const std::shared_ptr<std_srvs::srv::Empty::Request>,
     std::shared_ptr<std_srvs::srv::Empty::Response>)
@@ -178,7 +235,8 @@ private:
 
     RCLCPP_INFO(this->get_logger(), "Resetting timestep to 0.");
   }
-
+  /// \brief teleports the robot to specified location
+  /// \param request x, y, and theta location to teleoport
   void teleport_callback(
     const std::shared_ptr<nusim::srv::Teleport::Request> request,
     std::shared_ptr<nusim::srv::Teleport::Response>)
@@ -208,7 +266,10 @@ private:
     q_diff_ = diff_drive_.get_configuration();
     wheel_positions_ = diff_drive_.get_wheel_positions();
 
-    RCLCPP_INFO_STREAM(this->get_logger(), "LOOK HERE: " << wheel_velocity_left_*(1/rate_) << " AND HERE: " << wheel_velocity_right_*(1/rate_));
+    RCLCPP_INFO_STREAM(
+      this->get_logger(),
+      "LOOK HERE: " << wheel_velocity_left_ * (1 / rate_) << " AND HERE: " <<
+        wheel_velocity_right_ * (1 / rate_));
     wheel_positions_.phi_left = wheel_positions_.phi_left + wheel_velocity_left_ * (1 / rate_);  // rad
     wheel_positions_.phi_right = wheel_positions_.phi_right + wheel_velocity_right_ * (1 / rate_);
 
@@ -222,7 +283,10 @@ private:
     RCLCPP_INFO_STREAM(this->get_logger(), "publish_sensor_data");
     sensor_data_.left_encoder += (wheel_velocity_left_) * (1 / rate_) * encoder_ticks_per_rad_;
     sensor_data_.right_encoder += wheel_velocity_right_ * (1 / rate_) * encoder_ticks_per_rad_;
-    RCLCPP_INFO_STREAM(this->get_logger(), "left_encoder: " << sensor_data_.left_encoder << " right_encoder: " << sensor_data_.right_encoder);
+    RCLCPP_INFO_STREAM(
+      this->get_logger(),
+      "left_encoder: " << sensor_data_.left_encoder << " right_encoder: " <<
+        sensor_data_.right_encoder);
     sensor_data_pub_->publish(sensor_data_);
   }
 

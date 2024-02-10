@@ -17,6 +17,8 @@ To view the robot moving in a circle:
 ## Services
 * Give the robot a velocity and radius to move in a circle using the service `Control.srv`. Run `ros2 service call /control "nuturtle_control/Control" "{velocity: 0.2, radius: 0.5}"` to give the robot a velocity of 0.2 m/s and a radius of 0.5 m.
 * To give the robot a initial pose, use the service `InitialPose.srv`. Run `ros2 service call /initialpose "nuturtle_control/InitialPose" "{x: 0.0, y: 0.0, theta: 0.0}"` to give the robot an initial pose of (0, 0, 0).
+* Reverse the robot by running `ros2 service call /reverse "std_srvs/srv/Empty" "{}"`.
+* To stop the robot, run `ros2 service call /stop "std_srvs/srv/Empty" "{}"`.
 
 
 ## Video of the robot moving in the circle

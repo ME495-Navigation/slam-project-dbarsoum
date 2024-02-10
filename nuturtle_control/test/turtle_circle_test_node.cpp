@@ -65,5 +65,5 @@ TEST_CASE("Test circle_test_node", "[circle_node]") {
   RCLCPP_INFO(node->get_logger(), "counter: %f", counter / (end_time - start_time).seconds());
   REQUIRE_THAT(counter / (end_time - start_time).seconds(), Catch::Matchers::WithinAbs(100.0, 5.0));
 
-  REQUIRE(1.0 == 0.0);  // force test to fail (to see the output of the counter value
+  // REQUIRE(1.0 == 0.0);  // force test to fail (to see the output of the counter value
 }
