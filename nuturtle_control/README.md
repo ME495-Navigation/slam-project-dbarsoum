@@ -23,7 +23,16 @@ To view the robot moving in a circle:
 
 ## Video of the robot moving in the circle
 
+### Real Environment
+
 
 [video_circle_turtlebot](https://github.com/ME495-Navigation/slam-project-dbarsoum/assets/117933155/a2dab2b7-4285-4396-b817-40601c7e6a31)
+
+
+### Rviz
+
+
+[robot_moves_circle_rviz.webm](https://github.com/ME495-Navigation/slam-project-dbarsoum/assets/117933155/f4da492b-332c-4b5c-ab5b-a00eb14a73e7)
+
 
 Drift was ~7cm.
