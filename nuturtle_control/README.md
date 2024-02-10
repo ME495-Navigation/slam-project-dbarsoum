@@ -22,6 +22,6 @@ To view the robot moving in a circle:
 ## Video of the robot moving in the circle
 
 
-![video_circle_turtlebot](https://github.com/ME495-Navigation/slam-project-dbarsoum/assets/117933155/a2dab2b7-4285-4396-b817-40601c7e6a31)
+[video_circle_turtlebot](https://github.com/ME495-Navigation/slam-project-dbarsoum/assets/117933155/a2dab2b7-4285-4396-b817-40601c7e6a31)
 
 Drift was ~7cm.
