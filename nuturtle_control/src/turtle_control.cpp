@@ -81,7 +81,7 @@ public:
       "wheel_cmd", 10);
 
     joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>(
-      "/blue/joint_states", 10);
+      "joint_states", 10);
 
     diff_drive_ = turtlelib::DiffDrive(track_width_, wheel_radius_);
 
@@ -105,7 +105,7 @@ private:
 
     wheel_positions.phi_left /= motor_cmd_per_rad_sec_;
     wheel_positions.phi_right /= motor_cmd_per_rad_sec_;
-    RCLCPP_INFO_STREAM(this->get_logger(), "motor_cmd_per_rad_sec_: " << motor_cmd_per_rad_sec_);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "motor_cmd_per_rad_sec_: " << motor_cmd_per_rad_sec_);
 
     /// saturation
     wheel_positions.phi_left = std::clamp(wheel_positions.phi_left, -motor_cmd_speed_, motor_cmd_speed_);
@@ -125,8 +125,8 @@ private:
     // RCLCPP_INFO_STREAM(this->get_logger(), "sensor_data_callback");
     auto current_time = msg->stamp.sec + msg->stamp.nanosec * 1e-9;
     
-    RCLCPP_INFO_STREAM(this->get_logger(), "left_encoder: " << msg->left_encoder);
-    RCLCPP_INFO_STREAM(this->get_logger(), "right_encoder: " << msg->right_encoder);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "left_encoder: " << msg->left_encoder);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "right_encoder: " << msg->right_encoder);
 
     turtlelib::WheelPositions_phi wheel_positions;
     wheel_positions.phi_left = msg->left_encoder / encoder_ticks_per_rad_;
@@ -134,7 +134,7 @@ private:
     // diff_drive_.update_configuration(wheel_positions);
 
     sensor_msgs::msg::JointState joint_state;
-    joint_state.header.stamp = now();
+    joint_state.header.stamp = this->get_clock()->now();
     joint_state.name = {"left_wheel_joint", "right_wheel_joint"};
     joint_state.position = {wheel_positions.phi_left, wheel_positions.phi_right};
     // previous_ = current_time;

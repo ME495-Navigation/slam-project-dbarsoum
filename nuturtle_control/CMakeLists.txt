@@ -111,7 +111,7 @@ endif()
 if(BUILD_TESTING)
   include(CTest)
 
-find_package(catch_ros2 REQUIRED)
+  find_package(catch_ros2 REQUIRED)
   ###############
   ## UNIT TEST ##
   ###############

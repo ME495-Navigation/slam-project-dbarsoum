@@ -28,17 +28,17 @@ public:
     /// publishes odometry messages and the odometry transform
     // RCLCPP_INFO(this->get_logger(), "odometry has been started.");
 
-    declare_parameter("wheel_radius", -1.0);
+    declare_parameter("wheel_radius", 0.0);
     wheel_radius_ = get_parameter("wheel_radius").as_double();
     // RCLCPP_INFO_STREAM(get_logger(), "wheel radius: " << wheel_radius_);
-    if (wheel_radius_ < 0.0) {
+    if (wheel_radius_ == 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_radius error");
       rclcpp::shutdown();
     }
 
-    declare_parameter("track_width", -1.0);
+    declare_parameter("track_width", 0.0);
     double track_width_ = get_parameter("track_width").as_double();
-    if (track_width_ < 0.0) {
+    if (track_width_ == 0.0) {
       RCLCPP_ERROR_STREAM(this->get_logger(), "track_width error");
       rclcpp::shutdown();
     }
@@ -74,7 +74,7 @@ public:
 
     /// subscribers
     joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-      "/blue/joint_states", 10, std::bind(&Odometry::joint_state_callback, this, std::placeholders::_1));
+      "joint_states", 10, std::bind(&Odometry::joint_state_callback, this, std::placeholders::_1));
 
     /// publish odometry messages
     odometry_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
