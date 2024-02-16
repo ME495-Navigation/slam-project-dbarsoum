@@ -64,6 +64,11 @@
             <remap from="joint_states" to="blue/joint_states" />
         </node>
         <node pkg="tf2_ros" exec="static_transform_publisher" name="nusim_world_to_odom" args="--frame-id nusim/world --child-frame-id odom"/>
+       
+        <include file="$(find-pkg-share hls_lfcd_lds_driver)/launch/hlds_laser.launch.py">
+            <arg name="port" value="/dev/ttyUSB0"/>
+            <arg name="frame_id" value="laser"/>
+        </include>
     </group>
 
     <group if="$(eval '\'$(var robot)\' != \'localhost\'')" >

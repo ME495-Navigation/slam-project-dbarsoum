@@ -17,6 +17,7 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(nuturtlebot_msgs REQUIRED)
 find_package(turtlelib REQUIRED)
+find_package(nav_msgs REQUIRED)
 
 set(srv_files
 "srv/Teleport.srv"
@@ -35,7 +36,8 @@ ament_target_dependencies(nusim_node
   tf2_ros
   visualization_msgs
   nuturtlebot_msgs
-  turtlelib)
+  turtlelib
+  nav_msgs)
 
 rosidl_get_typesupport_target(cpp_typesupport_target
 ${PROJECT_NAME} rosidl_typesupport_cpp)

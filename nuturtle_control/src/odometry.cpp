@@ -16,6 +16,7 @@
 #include "geometry_msgs/msg/pose_with_covariance.h"
 #include "geometry_msgs/msg/twist_with_covariance.h"
 #include "nuturtle_control/srv/initial_pose.hpp"
+#include "nav_msgs/msg/path.hpp"
 
 using namespace std::chrono_literals;
 
@@ -78,6 +79,7 @@ public:
 
     /// publish odometry messages
     odometry_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
+    blue_path_publisher_ = this->create_publisher<nav_msgs::msg::Path>("path", 10);
 
     /// services
     service_InitPose_ = this->create_service<nuturtle_control::srv::InitialPose>(
@@ -131,6 +133,10 @@ private:
     t_.transform.rotation.w = q.w();
 
     tf_broadcaster_->sendTransform(t_);
+
+    addPath();
+    blue_path_publisher_->publish(msg_path_);
+
   }
 
   void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
@@ -222,12 +228,32 @@ private:
     tf_broadcaster_->sendTransform(t_);
   }
 
+  void addPath()
+  {
+    geometry_msgs::msg::PoseStamped pose;
+    pose.header.stamp = this->get_clock()->now();
+    pose.header.frame_id = "nusim/world";
+    pose.pose.position.x = t_.transform.translation.x;
+    pose.pose.position.y = t_.transform.translation.y;
+    pose.pose.position.z = 0.0;
+    pose.pose.orientation.x = t_.transform.rotation.x;
+    pose.pose.orientation.y = t_.transform.rotation.y;
+    pose.pose.orientation.z = t_.transform.rotation.z;
+    pose.pose.orientation.w = t_.transform.rotation.w;
+
+    msg_path_.header.stamp = this->get_clock()->now();
+    msg_path_.header.frame_id = "nusim/world";
+    msg_path_.poses.push_back(pose);
+  }
+
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odometry_publisher_;
   rclcpp::Service<nuturtle_control::srv::InitialPose>::SharedPtr service_InitPose_;
   rclcpp::TimerBase::SharedPtr timer_;
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   geometry_msgs::msg::TransformStamped t_;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr blue_path_publisher_;
+  nav_msgs::msg::Path msg_path_;
   std::string body_id_;
   std::string odom_id_;
   double wheel_radius_;
