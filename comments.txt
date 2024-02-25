@@ -1,0 +1,10 @@
+Some compiler warnings
+Some tests fail
+launchfile does not launch a teleop keyboard
+do not flood the console with debugging information (the encoder positions.
+There is an rviz error with the blue robot when rviz runs
+
+The simulated red robot does not move with ros2 launch start_robot.launch.xml
+
+Nodes are missing comments describing the ROS API
+

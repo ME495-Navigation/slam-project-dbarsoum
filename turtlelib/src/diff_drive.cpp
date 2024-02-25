@@ -8,9 +8,11 @@
 #include <iostream> 
 #include <vector>
 
-using namespace turtlelib;
+using namespace turtlelib; // do not using namespace
 
-DiffDrive::DiffDrive()
+// diff drive should be in the turtlelib namespace
+
+DiffDrive::DiffDrive() // use initializer lists
 {
     wheel_track_ = 0.0;
     wheel_radius_ = 0.0;
@@ -28,7 +30,7 @@ DiffDrive::DiffDrive(double wheel_track, double wheel_radius)
 
 void DiffDrive::update_configuration(WheelPositions_phi new_wheel_positions)
 {
-    double delta_phi_left = new_wheel_positions.phi_left - wheel_positions_.phi_left;
+    double delta_phi_left = new_wheel_positions.phi_left - wheel_positions_.phi_left; // const auto
     double delta_phi_right = new_wheel_positions.phi_right - wheel_positions_.phi_right;
     // Configuration_q delta_q_b;
     // Configuration_q delta_q;
