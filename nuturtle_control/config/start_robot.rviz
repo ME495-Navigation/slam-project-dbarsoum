@@ -289,7 +289,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /path
+        Value: red/path
       Value: true
     - Alpha: 1
       Buffer Length: 1
@@ -317,7 +317,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /path
+        Value: blue/path
       Value: true
   Enabled: true
   Global Options:
@@ -365,7 +365,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 4.14678430557251
+      Distance: 1.7398520708084106
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -380,10 +380,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8153983950614929
+      Pitch: 0.5547972917556763
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.13539423048496246
+      Yaw: 5.938582420349121
     Saved: ~
 Window Geometry:
   Displays:

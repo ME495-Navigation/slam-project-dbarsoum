@@ -103,8 +103,8 @@ public:
     declare_parameter("obstacles/x", std::vector<double>{});
     declare_parameter("obstacles/y", std::vector<double>{});
     declare_parameter("obstacles/r", std::vector<double>{});
-    declare_parameter("input_noise", 0.0);
-    declare_parameter("slip_fraction", 0.0);
+    declare_parameter("input_noise", 5.0);
+    declare_parameter("slip_fraction", 0.5);
 
     /// gets the value of the parameter
     rate_ = get_parameter("rate").as_double();

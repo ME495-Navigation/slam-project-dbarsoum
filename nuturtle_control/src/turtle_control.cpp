@@ -137,13 +137,13 @@ private:
     // RCLCPP_INFO_STREAM(this->get_logger(), "right_encoder: " << msg->right_encoder);
 
     turtlelib::WheelPositions_phi wheel_positions;
-    wheel_positions.phi_left = msg->left_encoder / encoder_ticks_per_rad_;
-    wheel_positions.phi_right = msg->right_encoder / encoder_ticks_per_rad_;
+    wheel_positions.phi_left = double(msg->left_encoder) / encoder_ticks_per_rad_;
+    wheel_positions.phi_right = double(msg->right_encoder) / encoder_ticks_per_rad_;
     // diff_drive_.update_configuration(wheel_positions);
 
     sensor_msgs::msg::JointState joint_state;
     joint_state.header.stamp = this->get_clock()->now();
-    joint_state.name = {"left_wheel_joint", "right_wheel_joint"};
+    joint_state.name = {"wheel_left_joint", "wheel_right_joint"};
     joint_state.position = {wheel_positions.phi_left, wheel_positions.phi_right};
     // previous_ = current_time;
     double dt = current_time - previous_;
