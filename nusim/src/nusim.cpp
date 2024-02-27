@@ -107,6 +107,8 @@ public:
     declare_parameter("slip_fraction", 0.5);
     declare_parameter("basic_sensor_variance", 0.01);
     declare_parameter("max_range", 3.0);
+    declare_parameter("collision_radius", 0.11);
+
 
     /// gets the value of the parameter
     rate_ = get_parameter("rate").as_double();
@@ -119,6 +121,7 @@ public:
     slip_fraction_ = get_parameter("slip_fraction").as_double();
     basic_sensor_variance_ = get_parameter("basic_sensor_variance").as_double();
     max_range_ = get_parameter("max_range").as_double();
+    collision_radius_ = get_parameter("collision_radius").as_double();
 
     /// check to make sure that the obstacles are the same length
     obstacles_x_ = get_parameter("obstacles/x").as_double_array();
@@ -270,8 +273,8 @@ private:
         fake_sensor.color.g = 1.0;
         fake_sensor.color.b = 0.0;
         fake_sensor.color.a = 1.0;
-        fake_sensor.scale.x = obstacles_r_.at(i);
-        fake_sensor.scale.y = obstacles_r_.at(i);
+        fake_sensor.scale.x = obstacles_r_.at(i) * 2.0;
+        fake_sensor.scale.y = obstacles_r_.at(i) * 2.0;
         fake_sensor.scale.z = 0.25;
 
         // check if within range
@@ -354,8 +357,35 @@ private:
 
     diff_drive_.update_configuration(wheel_positions_);  // fk
     q_diff_ = diff_drive_.get_configuration();
-  
-    // update transformation
+
+    // collision detection
+    for (int i = 0; i < int(obstacles_x_.size()); i++) {
+      auto x_obs_loc = obstacles_x_.at(i);
+      auto y_obs_loc = obstacles_y_.at(i);
+      auto r_obs = obstacles_r_.at(i);
+      auto dist_robot_obstacle = std::sqrt(std::pow(x_obs_loc - q_diff_.x_, 2) +
+                      std::pow(y_obs_loc - q_diff_.y_, 2));
+      if (dist_robot_obstacle < (collision_radius_ + r_obs)) {
+        RCLCPP_INFO(get_logger(), "Collision detected");
+        // move robot's center along line between robot center and obstacle center so collision circles are tangent
+        turtlelib::Vector2D center_to_obstacle;
+        center_to_obstacle.x = x_obs_loc - q_diff_.x_;
+        center_to_obstacle.y = y_obs_loc - q_diff_.y_;
+        
+        turtlelib::Vector2D norm_center_line;
+        auto mag_vect = std::sqrt(std::pow(center_to_obstacle.x, 2) + std::pow(center_to_obstacle.y, 2));
+        norm_center_line.x = center_to_obstacle.x / mag_vect;
+        norm_center_line.y = center_to_obstacle.y / mag_vect;
+
+        q_diff_.x_ = x_obs_loc - (collision_radius_ + r_obs) * norm_center_line.x;
+        q_diff_.y_ = y_obs_loc - (collision_radius_ + r_obs) * norm_center_line.y;
+
+        // set configuration
+        diff_drive_.set_configuration(q_diff_);
+        q_diff_ = diff_drive_.get_configuration();
+      }
+    }
+    // // update transformation
     updateTransform(q_diff_.x_, q_diff_.y_, q_diff_.theta_);
   }
 
@@ -432,8 +462,8 @@ private:
     marker.color.g = 0.0;
     marker.color.b = 0.0;
     marker.color.a = 1.0;
-    marker.scale.x = r;
-    marker.scale.y = r;
+    marker.scale.x = r * 2.0;
+    marker.scale.y = r * 2.0;
     marker.scale.z = 0.25;
 
     marker_array.markers.push_back(marker);
@@ -509,6 +539,7 @@ private:
   double slip_fraction_;
   double basic_sensor_variance_;
   double max_range_;
+  double collision_radius_;
   std::vector<double> obstacles_x_;
   std::vector<double> obstacles_y_;
   std::vector<double> obstacles_r_;

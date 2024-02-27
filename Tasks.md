@@ -33,7 +33,7 @@ Tasks:
     - [x] Task C.8 (Turtle Drive)
     - [x] Task C.9 (Robot Position)
     - [x] Task C.10 (Basic Sensor)
-    - [ ] Task C.11 (Collision Detection)
+    - [x] Task C.11 (Collision Detection)
     - [ ] Task C.12 (Lidar)
 - [x] Task D (Kinematics)
     - [x] Task D.1 (DiffDrive class)
