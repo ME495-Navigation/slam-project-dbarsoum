@@ -105,6 +105,8 @@ public:
     declare_parameter("obstacles/r", std::vector<double>{});
     declare_parameter("input_noise", 5.0);
     declare_parameter("slip_fraction", 0.5);
+    declare_parameter("basic_sensor_variance", 0.01);
+    declare_parameter("max_range", 3.0);
 
     /// gets the value of the parameter
     rate_ = get_parameter("rate").as_double();
@@ -115,6 +117,8 @@ public:
     arena_y_length_ = get_parameter("arena_y_length").as_double();
     input_noise_ = get_parameter("input_noise").as_double();
     slip_fraction_ = get_parameter("slip_fraction").as_double();
+    basic_sensor_variance_ = get_parameter("basic_sensor_variance").as_double();
+    max_range_ = get_parameter("max_range").as_double();
 
     /// check to make sure that the obstacles are the same length
     obstacles_x_ = get_parameter("obstacles/x").as_double_array();
@@ -181,7 +185,10 @@ public:
       qos_policy);
 
     sensor_data_pub_ = create_publisher<nuturtlebot_msgs::msg::SensorData>(
-      "red/sensor_data", 10); // sensor data gets remapped in launch file
+      "red/sensor_data", 10);
+
+    fake_sensor_data_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>(
+      "/fake_sensor", qos_policy);
 
     red_path_pub_ = create_publisher<nav_msgs::msg::Path>("path", 10);
 
@@ -217,7 +224,7 @@ public:
     // Publish the obstacles
     visualization_msgs::msg::MarkerArray obstacle_array;
     for (int i = 0; i < int(obstacles_x_.size()); i++) {
-      addObstacle(obstacle_array, obstacles_x_[i], obstacles_y_[i], obstacles_r_[i], "obstacle", i);
+      addObstacle(obstacle_array, obstacles_x_.at(i), obstacles_y_.at(i), obstacles_r_.at(i), "obstacle", i);
     }
     obstacle_pub_->publish(obstacle_array);
   }
@@ -240,6 +247,49 @@ private:
     addPath();
     red_path_pub_->publish(msg_path_);
 
+    // Fake Obstacles: Publish the fake sensor data at 5Hz -- c.10 (basic sensor)
+    std::normal_distribution<double> noise_gauss_fake_{0.0, basic_sensor_variance_};
+    if (timestep_ % int(rate_ / 5.0)  == 0.0) {
+      visualization_msgs::msg::MarkerArray fake_sensor_array;
+      visualization_msgs::msg::Marker fake_sensor;
+      fake_sensor_array.markers.clear(); // clear the array
+      for (int i = 0; i < int(obstacles_x_.size()); i++) {
+        fake_sensor.header.frame_id = "nusim/world";
+        fake_sensor.header.stamp = get_clock()->now();
+        fake_sensor.ns = "fake_sensor";
+        fake_sensor.id = i;
+        fake_sensor.type = visualization_msgs::msg::Marker::CYLINDER;
+        fake_sensor.pose.position.x = obstacles_x_.at(i) + noise_gauss_fake_(generator_);
+        fake_sensor.pose.position.y = obstacles_y_.at(i) + noise_gauss_fake_(generator_);
+        fake_sensor.pose.position.z = 0.0;
+        fake_sensor.pose.orientation.x = 0.0;
+        fake_sensor.pose.orientation.y = 0.0;
+        fake_sensor.pose.orientation.z = 0.0;
+        fake_sensor.pose.orientation.w = 1.0;
+        fake_sensor.color.r = 1.0;
+        fake_sensor.color.g = 1.0;
+        fake_sensor.color.b = 0.0;
+        fake_sensor.color.a = 1.0;
+        fake_sensor.scale.x = obstacles_r_.at(i);
+        fake_sensor.scale.y = obstacles_r_.at(i);
+        fake_sensor.scale.z = 0.25;
+
+        // check if within range
+        auto dist_ = std::sqrt(std::pow(obstacles_x_.at(i) - t_.transform.translation.x, 2) +
+                      std::pow(obstacles_y_.at(i) - t_.transform.translation.y, 2));
+
+        if (dist_ < max_range_) {
+          fake_sensor.action = visualization_msgs::msg::Marker::ADD;
+        } else {
+          fake_sensor.action = visualization_msgs::msg::Marker::DELETE;
+        }
+
+        fake_sensor_array.markers.push_back(fake_sensor);
+      }
+      // publish the fake sensor data of the obstacles
+      fake_sensor_data_pub_->publish(fake_sensor_array);
+    }
+
   }
   /// \brief reset_callback brings robot back to origin
   void reset_callback(
@@ -259,10 +309,6 @@ private:
     const std::shared_ptr<nusim::srv::Teleport::Request> request,
     std::shared_ptr<nusim::srv::Teleport::Response>)
   {
-    // RCLCPP_INFO(
-    //   get_logger(), "Teleporting turtle to (%f, %f, %f).", request->x, request->y,
-    //   request->theta);
-    // geometry_msgs::msg::TransformStamped t_;
     x0_ = request->x;
     y0_ = request->y;
     theta0_ = request->theta;
@@ -271,6 +317,7 @@ private:
     // corresponding tf variables
     updateTransform(x0_, y0_, theta0_);
     tf_broadcaster_->sendTransform(t_);
+    
   }
 
   void wheel_cmd_callback(const nuturtlebot_msgs::msg::WheelCommands::SharedPtr msg)
@@ -437,6 +484,7 @@ private:
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr obstacle_pub_;
   rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_data_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr fake_sensor_data_pub_;
   rclcpp::Subscription<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr wheel_cmd_sub_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
   rclcpp::Service<nusim::srv::Teleport>::SharedPtr service_teleport_;
@@ -459,6 +507,8 @@ private:
   double encoder_ticks_per_rad_;
   double input_noise_;
   double slip_fraction_;
+  double basic_sensor_variance_;
+  double max_range_;
   std::vector<double> obstacles_x_;
   std::vector<double> obstacles_y_;
   std::vector<double> obstacles_r_;

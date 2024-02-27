@@ -32,7 +32,7 @@ Tasks:
     - [x] Task C.7 (README.md)
     - [x] Task C.8 (Turtle Drive)
     - [x] Task C.9 (Robot Position)
-    - [ ] Task C.10 (Basic Sensor)
+    - [x] Task C.10 (Basic Sensor)
     - [ ] Task C.11 (Collision Detection)
     - [ ] Task C.12 (Lidar)
 - [x] Task D (Kinematics)

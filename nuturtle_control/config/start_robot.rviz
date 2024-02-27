@@ -129,6 +129,10 @@ Visualization Manager:
           Value: true
         blue/imu_link:
           Value: true
+        blue/wheel_left_link:
+          Value: true
+        blue/wheel_right_link:
+          Value: true
         nusim/world:
           Value: true
         odom:
@@ -162,6 +166,10 @@ Visualization Manager:
                 blue/caster_back_link:
                   {}
                 blue/imu_link:
+                  {}
+                blue/wheel_left_link:
+                  {}
+                blue/wheel_right_link:
                   {}
           red/base_footprint:
             red/base_link:
@@ -319,6 +327,18 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: blue/path
       Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        fake_sensor: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /fake_sensor
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -365,7 +385,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 1.7398520708084106
+      Distance: 4.824747085571289
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -380,10 +400,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5547972917556763
+      Pitch: 0.9447969198226929
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.938582420349121
+      Yaw: 0.1253982037305832
     Saved: ~
 Window Geometry:
   Displays:
