@@ -43,6 +43,12 @@
 #include <memory>
 #include <string>
 #include <sstream>
+#include <cmath>
+// #include <cmath>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <random>
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
@@ -88,30 +94,34 @@ public:
     /// \param collision_radius (double): Robot collision radius [m]
 
     /// declares a parameter
-    this->declare_parameter("rate", 200.0);
-    this->declare_parameter("x0", 0.0);
-    this->declare_parameter("y0", 0.0);
-    this->declare_parameter("theta0", 0.0);
-    this->declare_parameter("arena_x_length", 5.0);
-    this->declare_parameter("arena_y_length", 10.0);
-    this->declare_parameter("obstacles/x", std::vector<double>{});
-    this->declare_parameter("obstacles/y", std::vector<double>{});
-    this->declare_parameter("obstacles/r", std::vector<double>{});
+    declare_parameter("rate", 200.0);
+    declare_parameter("x0", 0.0);
+    declare_parameter("y0", 0.0);
+    declare_parameter("theta0", 0.0);
+    declare_parameter("arena_x_length", 5.0);
+    declare_parameter("arena_y_length", 10.0);
+    declare_parameter("obstacles/x", std::vector<double>{});
+    declare_parameter("obstacles/y", std::vector<double>{});
+    declare_parameter("obstacles/r", std::vector<double>{});
+    declare_parameter("input_noise", 0.0);
+    declare_parameter("slip_fraction", 0.0);
 
     /// gets the value of the parameter
-    rate_ = this->get_parameter("rate").as_double();
-    x0_ = this->get_parameter("x0").as_double();
-    y0_ = this->get_parameter("y0").as_double();
-    theta0_ = this->get_parameter("theta0").as_double();
-    arena_x_length_ = this->get_parameter("arena_x_length").as_double();
-    arena_y_length_ = this->get_parameter("arena_y_length").as_double();
+    rate_ = get_parameter("rate").as_double();
+    x0_ = get_parameter("x0").as_double();
+    y0_ = get_parameter("y0").as_double();
+    theta0_ = get_parameter("theta0").as_double();
+    arena_x_length_ = get_parameter("arena_x_length").as_double();
+    arena_y_length_ = get_parameter("arena_y_length").as_double();
+    input_noise_ = get_parameter("input_noise").as_double();
+    slip_fraction_ = get_parameter("slip_fraction").as_double();
 
     /// check to make sure that the obstacles are the same length
-    obstacles_x_ = this->get_parameter("obstacles/x").as_double_array();
-    obstacles_y_ = this->get_parameter("obstacles/y").as_double_array();
-    obstacles_r_ = this->get_parameter("obstacles/r").as_double_array();
+    obstacles_x_ = get_parameter("obstacles/x").as_double_array();
+    obstacles_y_ = get_parameter("obstacles/y").as_double_array();
+    obstacles_r_ = get_parameter("obstacles/r").as_double_array();
     if (obstacles_x_.size() != obstacles_y_.size() || obstacles_x_.size() != obstacles_r_.size()) {
-      RCLCPP_ERROR(this->get_logger(), "Obstacles are not the same length.");
+      RCLCPP_ERROR(get_logger(), "Obstacles are not the same length.");
       rclcpp::shutdown();
     }
 
@@ -119,35 +129,35 @@ public:
     wheel_radius_ = get_parameter("wheel_radius").as_double();
     // RCLCPP_INFO_STREAM(get_logger(), "wheel radius: " << wheel_radius_);
     if (wheel_radius_ == 0.0) {
-      RCLCPP_ERROR_STREAM(this->get_logger(), "wheel_radius error");
+      RCLCPP_ERROR_STREAM(get_logger(), "wheel_radius error");
       rclcpp::shutdown();
     }
 
     declare_parameter("track_width", 0.0);
     track_width_ = get_parameter("track_width").as_double();
     if (track_width_ == 0.0) {
-      RCLCPP_ERROR_STREAM(this->get_logger(), "track_width error");
+      RCLCPP_ERROR_STREAM(get_logger(), "track_width error");
       rclcpp::shutdown();
     }
 
     declare_parameter("motor_cmd_max", 0.0);
     motor_cmd_speed_ = get_parameter("motor_cmd_max").as_double();
     if (motor_cmd_speed_ == 0.0) {
-      RCLCPP_ERROR_STREAM(this->get_logger(), "motor_cmd_speed error");
+      RCLCPP_ERROR_STREAM(get_logger(), "motor_cmd_speed error");
       rclcpp::shutdown();
     }
 
     declare_parameter("motor_cmd_per_rad_sec", 0.0);
     motor_cmd_per_rad_sec_ = get_parameter("motor_cmd_per_rad_sec").as_double();
     if (motor_cmd_per_rad_sec_ == 0.0) {
-      RCLCPP_ERROR_STREAM(this->get_logger(), "motor_cmd_per_rad_sec error");
+      RCLCPP_ERROR_STREAM(get_logger(), "motor_cmd_per_rad_sec error");
       rclcpp::shutdown();
     }
 
     declare_parameter("encoder_ticks_per_rad", 0.0);
     encoder_ticks_per_rad_ = get_parameter("encoder_ticks_per_rad").as_double();
     if (encoder_ticks_per_rad_ == 0.0) {
-      RCLCPP_ERROR_STREAM(this->get_logger(), "encoder_ticks_per_rad error");
+      RCLCPP_ERROR_STREAM(get_logger(), "encoder_ticks_per_rad error");
       rclcpp::shutdown();
     }
     RCLCPP_INFO_STREAM(get_logger(), "wheel radius: " << wheel_radius_);
@@ -162,50 +172,39 @@ public:
       std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
     /// creates a publisher
-    timestep_publisher_ = this->create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
+    timestep_publisher_ = create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
     rclcpp::QoS qos_policy = rclcpp::QoS(rclcpp::KeepLast(10)).transient_local();
     marker_pub_ =
-      this->create_publisher<visualization_msgs::msg::MarkerArray>("~/walls", qos_policy);
-    obstacle_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
+      create_publisher<visualization_msgs::msg::MarkerArray>("~/walls", qos_policy);
+    obstacle_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>(
       "~/obstacles",
       qos_policy);
 
-    sensor_data_pub_ = this->create_publisher<nuturtlebot_msgs::msg::SensorData>(
+    sensor_data_pub_ = create_publisher<nuturtlebot_msgs::msg::SensorData>(
       "red/sensor_data", 10); // sensor data gets remapped in launch file
 
-    red_path_pub_ = this->create_publisher<nav_msgs::msg::Path>("path", 10);
+    red_path_pub_ = create_publisher<nav_msgs::msg::Path>("path", 10);
 
 
     /// subscribers
-    wheel_cmd_sub_ = this->create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
+    wheel_cmd_sub_ = create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
       "wheel_cmd", 10, std::bind(&Nusim::wheel_cmd_callback, this, std::placeholders::_1));
     /// wheel_cmd gets remapped in launch file
 
     /// services
     service_ =
-      this->create_service<std_srvs::srv::Empty>(
+      create_service<std_srvs::srv::Empty>(
       "~/reset",
       std::bind(&Nusim::reset_callback, this, std::placeholders::_1, std::placeholders::_2));
     service_teleport_ =
-      this->create_service<nusim::srv::Teleport>(
+      create_service<nusim::srv::Teleport>(
       "~/teleport",
       std::bind(&Nusim::teleport_callback, this, std::placeholders::_1, std::placeholders::_2));
 
     diff_drive_ = turtlelib::DiffDrive(track_width_, wheel_radius_);
     /// timers
-    timer_ = this->create_wall_timer(
+    timer_ = create_wall_timer(
       (1s / rate_), std::bind(&Nusim::timer_callback, this));
-  }
-
-private:
-  /// \brief timer_callback that publishes the arena, obstacles, sensor data, and broadcasts the transform
-  void timer_callback()
-  {
-    auto message = std_msgs::msg::UInt64();
-    /// need the timestep in ms
-    message.data = timestep_++ *(1 / rate_) * 1e3;
-    // RCLCPP_INFO(this->get_logger(), "Publishing: '%ld'", message.data);
-    timestep_publisher_->publish(message);
 
     // Publish the markers
     visualization_msgs::msg::MarkerArray marker_array;
@@ -221,6 +220,17 @@ private:
       addObstacle(obstacle_array, obstacles_x_[i], obstacles_y_[i], obstacles_r_[i], "obstacle", i);
     }
     obstacle_pub_->publish(obstacle_array);
+  }
+
+private:
+  /// \brief timer_callback that publishes the arena, obstacles, sensor data, and broadcasts the transform
+  void timer_callback()
+  {
+    auto message = std_msgs::msg::UInt64();
+    /// need the timestep in ms
+    message.data = timestep_++ *(1 / rate_) * 1e3;
+    // RCLCPP_INFO(get_logger(), "Publishing: '%ld'", message.data);
+    timestep_publisher_->publish(message);
 
     publish_sensor_data();
 
@@ -241,7 +251,7 @@ private:
     y0_ = 0.0;
     theta0_ = 0.0;
 
-    // RCLCPP_INFO(this->get_logger(), "Resetting timestep to 0.");
+    // RCLCPP_INFO(get_logger(), "Resetting timestep to 0.");
   }
   /// \brief teleports the robot to specified location
   /// \param request x, y, and theta location to teleoport
@@ -250,7 +260,7 @@ private:
     std::shared_ptr<nusim::srv::Teleport::Response>)
   {
     // RCLCPP_INFO(
-    //   this->get_logger(), "Teleporting turtle to (%f, %f, %f).", request->x, request->y,
+    //   get_logger(), "Teleporting turtle to (%f, %f, %f).", request->x, request->y,
     //   request->theta);
     // geometry_msgs::msg::TransformStamped t_;
     x0_ = request->x;
@@ -265,36 +275,45 @@ private:
 
   void wheel_cmd_callback(const nuturtlebot_msgs::msg::WheelCommands::SharedPtr msg)
   {
+    std::normal_distribution<double> noise_gauss_{0.0, input_noise_};
+    std::uniform_real_distribution<double> noise_uniform_{-slip_fraction_, slip_fraction_};
     /// need to convert the wheel commands (mcu) to rad/s
     wheel_velocity_left_ = msg->left_velocity * motor_cmd_per_rad_sec_;  // need rad/s so need to multiply by motor_cmd_per_rad_sec_
     wheel_velocity_right_ = msg->right_velocity * motor_cmd_per_rad_sec_;
-    // RCLCPP_INFO_STREAM(this->get_logger(), "wheel_cmd_callback: " << wheel_velocity_left_ << " " << wheel_velocity_right_);
+    
 
-    diff_drive_.update_configuration(wheel_positions_);  // fk
-    q_diff_ = diff_drive_.get_configuration();
-    wheel_positions_ = diff_drive_.get_wheel_positions();
+    if (turtlelib::almost_equal(wheel_velocity_left_, 0.0)) {
+      wheel_velocity_left_ = 0.0;
+    }
+    else {
+      wheel_velocity_left_ += noise_gauss_(generator_); //* (1 + noise_uniform_(generator_));
+    }
+    if (turtlelib::almost_equal(wheel_velocity_right_, 0.0)) {
+      wheel_velocity_right_ = 0.0;
+    }
+    else {
+      wheel_velocity_right_ += noise_gauss_(generator_); //+ (1 + noise_uniform_(generator_));
+    }
 
-    // RCLCPP_INFO_STREAM(
-      // this->get_logger(),
-      // "LOOK HERE: " << wheel_velocity_left_ * (1 / rate_) << " AND HERE: " <<
-        // wheel_velocity_right_ * (1 / rate_));
+    sensor_data_.left_encoder = sensor_data_.left_encoder + (wheel_velocity_left_) * (1 / rate_) * encoder_ticks_per_rad_;
+    sensor_data_.right_encoder = sensor_data_.right_encoder + wheel_velocity_right_ * (1 / rate_) * encoder_ticks_per_rad_;
+
+    // 
+    wheel_velocity_left_ = wheel_velocity_left_ * (1 + noise_uniform_(generator_));
+    wheel_velocity_right_ = wheel_velocity_right_ * (1 + noise_uniform_(generator_));
+
     wheel_positions_.phi_left = wheel_positions_.phi_left + wheel_velocity_left_ * (1 / rate_);  // rad
     wheel_positions_.phi_right = wheel_positions_.phi_right + wheel_velocity_right_ * (1 / rate_);
 
+    diff_drive_.update_configuration(wheel_positions_);  // fk
+    q_diff_ = diff_drive_.get_configuration();
+  
     // update transformation
     updateTransform(q_diff_.x_, q_diff_.y_, q_diff_.theta_);
   }
 
   void publish_sensor_data()
   {
-
-    // RCLCPP_INFO_STREAM(this->get_logger(), "publish_sensor_data");
-    sensor_data_.left_encoder += (wheel_velocity_left_) * (1 / rate_) * encoder_ticks_per_rad_;
-    sensor_data_.right_encoder += wheel_velocity_right_ * (1 / rate_) * encoder_ticks_per_rad_;
-    // RCLCPP_INFO_STREAM(
-    //   this->get_logger(),
-    //   "left_encoder: " << sensor_data_.left_encoder << " right_encoder: " <<
-    //     sensor_data_.right_encoder);
     sensor_data_pub_->publish(sensor_data_);
   }
 
@@ -304,7 +323,7 @@ private:
   {
     visualization_msgs::msg::Marker marker;
     marker.header.frame_id = "nusim/world";
-    marker.header.stamp = this->get_clock()->now();
+    marker.header.stamp = get_clock()->now();
     marker.ns = name;
     marker.id = id;
     marker.type = visualization_msgs::msg::Marker::CUBE;
@@ -350,7 +369,7 @@ private:
   {
     visualization_msgs::msg::Marker marker;
     marker.header.frame_id = "nusim/world";
-    marker.header.stamp = this->get_clock()->now();
+    marker.header.stamp = get_clock()->now();
     marker.ns = name;
     marker.id = id;
     marker.type = visualization_msgs::msg::Marker::CYLINDER;
@@ -375,14 +394,14 @@ private:
 
   void updateTransform()
   {
-    t_.header.stamp = this->get_clock()->now();
+    t_.header.stamp = get_clock()->now();
     t_.header.frame_id = "nusim/world";
     t_.child_frame_id = "red/base_footprint";
   }
 
   void updateTransform(double x, double y, double theta)
   {
-    t_.header.stamp = this->get_clock()->now();
+    t_.header.stamp = get_clock()->now();
     t_.header.frame_id = "nusim/world";
     t_.child_frame_id = "red/base_footprint";
     t_.transform.translation.x = x;
@@ -398,7 +417,7 @@ private:
   void addPath()
   {
     geometry_msgs::msg::PoseStamped pose;
-    pose.header.stamp = this->get_clock()->now();
+    pose.header.stamp = get_clock()->now();
     pose.header.frame_id = "nusim/world";
     pose.pose.position.x = t_.transform.translation.x;
     pose.pose.position.y = t_.transform.translation.y;
@@ -408,7 +427,7 @@ private:
     pose.pose.orientation.z = t_.transform.rotation.z;
     pose.pose.orientation.w = t_.transform.rotation.w;
 
-    msg_path_.header.stamp = this->get_clock()->now();
+    msg_path_.header.stamp = get_clock()->now();
     msg_path_.header.frame_id = "nusim/world";
     msg_path_.poses.push_back(pose);
   }
@@ -438,6 +457,8 @@ private:
   double motor_cmd_speed_;
   double motor_cmd_per_rad_sec_;
   double encoder_ticks_per_rad_;
+  double input_noise_;
+  double slip_fraction_;
   std::vector<double> obstacles_x_;
   std::vector<double> obstacles_y_;
   std::vector<double> obstacles_r_;
@@ -448,6 +469,9 @@ private:
   turtlelib::DiffDrive diff_drive_;
   turtlelib::Configuration_q q_diff_;
   turtlelib::WheelPositions_phi wheel_positions_;
+  // std::normal_distribution<double> noise_gauss_{0.0, input_noise_};  // do not think this is right
+  // std::uniform_real_distribution<double> noise_uniform_{-slip_fraction_, slip_fraction_};
+  std::default_random_engine generator_;
 };
 
 int main(int argc, char ** argv)

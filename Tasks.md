@@ -50,7 +50,7 @@ Tasks:
     - [x] Task F.1 (Turtlebot Setup)
     - [x] Task F.2 (Cross-compilation)
     - [x] Task F.5 (Physical Testing)
-    - [ ] Task F.6 (Laser Scanner)
+    - [x] Task F.6 (Laser Scanner)
 - [ ] Task V (Visualization)
     - [ ] Task V.1 (Simulation Standalone)
     - [ ] Task V.2 (Simulation with Odometry)
