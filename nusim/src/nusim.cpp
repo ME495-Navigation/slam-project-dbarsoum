@@ -44,7 +44,6 @@
 #include <string>
 #include <sstream>
 #include <cmath>
-// #include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -65,6 +64,7 @@
 #include "nuturtlebot_msgs/msg/wheel_commands.hpp"
 #include "turtlelib/diff_drive.hpp"
 #include "nav_msgs/msg/path.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 
 
 using namespace std::chrono_literals;
@@ -99,7 +99,7 @@ public:
     declare_parameter("y0", 0.0);
     declare_parameter("theta0", 0.0);
     declare_parameter("arena_x_length", 5.0);
-    declare_parameter("arena_y_length", 10.0);
+    declare_parameter("arena_y_length", 5.0);
     declare_parameter("obstacles/x", std::vector<double>{});
     declare_parameter("obstacles/y", std::vector<double>{});
     declare_parameter("obstacles/r", std::vector<double>{});
@@ -108,6 +108,12 @@ public:
     declare_parameter("basic_sensor_variance", 0.01);
     declare_parameter("max_range", 3.0);
     declare_parameter("collision_radius", 0.11);
+    declare_parameter("max_range_lidar", 3.5);
+    declare_parameter("min_range", 0.12);
+    declare_parameter("angle_increment", 0.01745);
+    declare_parameter("number_of_samples", 360);
+    declare_parameter("resolution", 0.01745);
+    declare_parameter("noise_level", 0.01);
 
 
     /// gets the value of the parameter
@@ -122,6 +128,16 @@ public:
     basic_sensor_variance_ = get_parameter("basic_sensor_variance").as_double();
     max_range_ = get_parameter("max_range").as_double();
     collision_radius_ = get_parameter("collision_radius").as_double();
+    max_range_lidar_ = get_parameter("max_range_lidar").as_double();
+    // max_range_lidar_ = 10.0;
+    min_range_ = get_parameter("min_range").as_double();
+    angle_increment_ = get_parameter("angle_increment").as_double();
+    number_of_samples_ = get_parameter("number_of_samples").as_int();
+    resolution_ = get_parameter("resolution").as_double();
+    noise_level_ = get_parameter("noise_level").as_double();
+
+    double obstacles_height = 0.25;
+    double wall_height = 0.25;
 
     /// check to make sure that the obstacles are the same length
     obstacles_x_ = get_parameter("obstacles/x").as_double_array();
@@ -167,12 +183,6 @@ public:
       RCLCPP_ERROR_STREAM(get_logger(), "encoder_ticks_per_rad error");
       rclcpp::shutdown();
     }
-    RCLCPP_INFO_STREAM(get_logger(), "wheel radius: " << wheel_radius_);
-    RCLCPP_INFO_STREAM(get_logger(), "track width: " << track_width_);
-    RCLCPP_INFO_STREAM(get_logger(), "motor cmd speed: " << motor_cmd_speed_);
-    RCLCPP_INFO_STREAM(get_logger(), "motor cmd per rad sec: " << motor_cmd_per_rad_sec_);
-    RCLCPP_INFO_STREAM(get_logger(), "encoder ticks per rad: " << encoder_ticks_per_rad_);
-
 
     /// Initialize the transform broadcaster
     tf_broadcaster_ =
@@ -193,8 +203,10 @@ public:
     fake_sensor_data_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>(
       "/fake_sensor", qos_policy);
 
-    red_path_pub_ = create_publisher<nav_msgs::msg::Path>("path", 10);
+    laser_scan_pub_ = create_publisher<sensor_msgs::msg::LaserScan>(
+      "laser_scan", 10);
 
+    red_path_pub_ = create_publisher<nav_msgs::msg::Path>("path", 10);
 
     /// subscribers
     wheel_cmd_sub_ = create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
@@ -217,11 +229,12 @@ public:
       (1s / rate_), std::bind(&Nusim::timer_callback, this));
 
     // Publish the markers
+    double wall_thickness = 0.1;
     visualization_msgs::msg::MarkerArray marker_array;
-    addWall(marker_array, arena_x_length_ / 2, 0.0, "top_wall", 1);
-    addWall(marker_array, 0.0, arena_y_length_ / 2, "right_wall", 2);
-    addWall(marker_array, -arena_x_length_ / 2, 0.0, "bottom_wall", 3);
-    addWall(marker_array, 0.0, -arena_y_length_ / 2, "left_wall", 4);
+    addWall(marker_array, arena_x_length_ / 2.0 + wall_thickness / 2.0, 0.0, "top_wall", 1);
+    addWall(marker_array, 0.0, arena_y_length_ / 2.0 + wall_thickness / 2.0, "right_wall", 2);
+    addWall(marker_array, -arena_x_length_ / 2.0 - wall_thickness / 2.0, 0.0, "bottom_wall", 3);
+    addWall(marker_array, 0.0, -arena_y_length_ / 2.0 - wall_thickness / 2.0, "left_wall", 4);
     marker_pub_->publish(marker_array);
 
     // Publish the obstacles
@@ -253,11 +266,13 @@ private:
     // Fake Obstacles: Publish the fake sensor data at 5Hz -- c.10 (basic sensor)
     std::normal_distribution<double> noise_gauss_fake_{0.0, basic_sensor_variance_};
     if (timestep_ % int(rate_ / 5.0)  == 0.0) {
+      // TODO: fix the placement of the lidar markers--showing above the walls
+      // RCLCPP_INFO(get_logger(), "Publishing fake sensor data", timestep_);
       visualization_msgs::msg::MarkerArray fake_sensor_array;
       visualization_msgs::msg::Marker fake_sensor;
       fake_sensor_array.markers.clear(); // clear the array
       for (int i = 0; i < int(obstacles_x_.size()); i++) {
-        fake_sensor.header.frame_id = "nusim/world";
+        fake_sensor.header.frame_id = "red/base_scan";
         fake_sensor.header.stamp = get_clock()->now();
         fake_sensor.ns = "fake_sensor";
         fake_sensor.id = i;
@@ -273,8 +288,8 @@ private:
         fake_sensor.color.g = 1.0;
         fake_sensor.color.b = 0.0;
         fake_sensor.color.a = 1.0;
-        fake_sensor.scale.x = obstacles_r_.at(i) * 2.0;
-        fake_sensor.scale.y = obstacles_r_.at(i) * 2.0;
+        fake_sensor.scale.x = obstacles_r_.at(i) * 2.0; // diameter
+        fake_sensor.scale.y = obstacles_r_.at(i) * 2.0; // diameter
         fake_sensor.scale.z = 0.25;
 
         // check if within range
@@ -291,9 +306,13 @@ private:
       }
       // publish the fake sensor data of the obstacles
       fake_sensor_data_pub_->publish(fake_sensor_array);
-    }
 
+      // Laser Scan
+      updateLaserScan();
+      laser_scan_pub_->publish(laser_scan_);
+    }
   }
+
   /// \brief reset_callback brings robot back to origin
   void reset_callback(
     const std::shared_ptr<std_srvs::srv::Empty::Request>,
@@ -407,7 +426,7 @@ private:
     marker.action = visualization_msgs::msg::Marker::ADD;
     marker.pose.position.x = x;
     marker.pose.position.y = y;
-    marker.pose.position.z = 0.0;
+    marker.pose.position.z = wall_height;
     if (name == "right_wall" || name == "left_wall") {
       // green -- vertical walls -- no rotation needed
       marker.pose.orientation.x = 1.0;
@@ -453,7 +472,7 @@ private:
     marker.action = visualization_msgs::msg::Marker::ADD;
     marker.pose.position.x = x;
     marker.pose.position.y = y;
-    marker.pose.position.z = 0.0;
+    marker.pose.position.z = obstacles_height;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
@@ -509,12 +528,86 @@ private:
     msg_path_.poses.push_back(pose);
   }
 
+  void updateLaserScan()
+  {
+    laser_scan_.ranges.clear();
+
+    laser_scan_.header.stamp = get_clock()->now();
+    laser_scan_.header.frame_id = "red/base_scan";
+    laser_scan_.angle_min = 0.0;
+    laser_scan_.angle_max = 2 * turtlelib::PI;
+    laser_scan_.angle_increment = angle_increment_;
+    laser_scan_.range_min = min_range_;
+    laser_scan_.range_max = max_range_lidar_;
+
+    for (int i = 0; i < number_of_samples_; i++) {
+      double gamma = i * resolution_;
+      double scan_value = 3.0 * max_range_lidar_;
+
+      turtlelib::Vector2D current_robot_location;
+      current_robot_location.x = t_.transform.translation.x;
+      current_robot_location.y = t_.transform.translation.y;
+      double current_robot_theta = t_.transform.rotation.z;
+      turtlelib::Transform2D T_wrobot(current_robot_location, current_robot_theta);
+
+      turtlelib::Transform2D T_robotlaser(gamma);
+      turtlelib::Transform2D T_wlaser = T_wrobot * T_robotlaser;
+      turtlelib::Transform2D T_laserw = T_wlaser.inv();
+
+      // wall top right
+      turtlelib::Point2D wall_top_right;
+      wall_top_right.x = arena_x_length_ / 2;
+      wall_top_right.y = arena_y_length_ / 2;
+
+      // wall top left
+      turtlelib::Point2D wall_top_left;
+      wall_top_left.x = -arena_x_length_ / 2;
+      wall_top_left.y = arena_y_length_ / 2;
+
+      // wall bottom left
+      turtlelib::Point2D wall_bottom_left;
+      wall_bottom_left.x = -arena_x_length_ / 2;
+      wall_bottom_left.y = -arena_y_length_ / 2;
+
+      // wall bottom right
+      turtlelib::Point2D wall_bottom_right;
+      wall_bottom_right.x = arena_x_length_ / 2;
+      wall_bottom_right.y = -arena_y_length_ / 2;
+
+      turtlelib::Point2D wall_top_right_lidar = T_laserw(wall_top_right);
+      turtlelib::Point2D wall_top_left_lidar = T_laserw(wall_top_left);
+      turtlelib::Point2D wall_bottom_left_lidar = T_laserw(wall_bottom_left);
+      turtlelib::Point2D wall_bottom_right_lidar = T_laserw(wall_bottom_right);
+
+      double slope = (wall_top_right_lidar.y - wall_top_left_lidar.y) / (wall_top_right_lidar.x - wall_top_left_lidar.x);
+      double intercept = wall_top_right_lidar.y - slope * wall_top_right_lidar.x;
+
+      // intersection of lidar beam with wall
+      double x_intersection = -intercept / slope;
+
+      if (x_intersection >= 0) {
+        scan_value = x_intersection;
+      }
+
+      if (scan_value > max_range_lidar_) {
+        scan_value = max_range_lidar_;
+      
+      } else if (scan_value < min_range_) {
+        scan_value = min_range_;
+      }
+
+      laser_scan_.ranges.push_back(scan_value);
+
+    }
+  }
+
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr timestep_publisher_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr obstacle_pub_;
   rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_data_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr fake_sensor_data_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laser_scan_pub_;
   rclcpp::Subscription<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr wheel_cmd_sub_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
   rclcpp::Service<nusim::srv::Teleport>::SharedPtr service_teleport_;
@@ -540,6 +633,14 @@ private:
   double basic_sensor_variance_;
   double max_range_;
   double collision_radius_;
+  double min_range_;
+  double max_range_lidar_;
+  double angle_increment_;
+  int number_of_samples_;
+  double resolution_;
+  double noise_level_;
+  double wall_height;
+  double obstacles_height;
   std::vector<double> obstacles_x_;
   std::vector<double> obstacles_y_;
   std::vector<double> obstacles_r_;
@@ -553,6 +654,8 @@ private:
   // std::normal_distribution<double> noise_gauss_{0.0, input_noise_};  // do not think this is right
   // std::uniform_real_distribution<double> noise_uniform_{-slip_fraction_, slip_fraction_};
   std::default_random_engine generator_;
+
+  sensor_msgs::msg::LaserScan laser_scan_;
 };
 
 int main(int argc, char ** argv)
