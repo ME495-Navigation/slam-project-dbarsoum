@@ -264,7 +264,8 @@ private:
     red_path_pub_->publish(msg_path_);
 
     // Fake Obstacles: Publish the fake sensor data at 5Hz -- c.10 (basic sensor)
-    std::normal_distribution<double> noise_gauss_fake_{0.0, basic_sensor_variance_};
+    // std::normal_distribution<double> noise_gauss_fake_{0.0, basic_sensor_variance_};
+    std::normal_distribution<double> noise_gauss_fake_{0.0, 0.0};
     if (timestep_ % int(rate_ / 5.0)  == 0.0) {
       // TODO: fix the placement of the lidar markers--showing above the walls
       // RCLCPP_INFO(get_logger(), "Publishing fake sensor data", timestep_);
@@ -272,14 +273,18 @@ private:
       visualization_msgs::msg::Marker fake_sensor;
       fake_sensor_array.markers.clear(); // clear the array
       for (int i = 0; i < int(obstacles_x_.size()); i++) {
-        fake_sensor.header.frame_id = "red/base_scan";
+        fake_sensor.header.frame_id = "red/base_footprint";
+        // fake_sensor.header.frame_id = "nusim/world";
         fake_sensor.header.stamp = get_clock()->now();
         fake_sensor.ns = "fake_sensor";
         fake_sensor.id = i;
         fake_sensor.type = visualization_msgs::msg::Marker::CYLINDER;
-        fake_sensor.pose.position.x = obstacles_x_.at(i) + noise_gauss_fake_(generator_);
-        fake_sensor.pose.position.y = obstacles_y_.at(i) + noise_gauss_fake_(generator_);
-        fake_sensor.pose.position.z = 0.0;
+        double x_diff_ = obstacles_x_.at(i) - diff_drive_.get_configuration().x_;
+        double y_diff_ = obstacles_y_.at(i) - diff_drive_.get_configuration().y_;
+        double theta = diff_drive_.get_configuration().theta_;
+        fake_sensor.pose.position.x = x_diff_ * cos(theta) + y_diff_ * sin(theta) + noise_gauss_fake_(generator_);
+        fake_sensor.pose.position.y = -x_diff_ * sin(theta) + y_diff_ * cos(theta) + noise_gauss_fake_(generator_);
+        fake_sensor.pose.position.z = 0.25/2.0;
         fake_sensor.pose.orientation.x = 0.0;
         fake_sensor.pose.orientation.y = 0.0;
         fake_sensor.pose.orientation.z = 0.0;
@@ -426,7 +431,7 @@ private:
     marker.action = visualization_msgs::msg::Marker::ADD;
     marker.pose.position.x = x;
     marker.pose.position.y = y;
-    marker.pose.position.z = wall_height;
+    marker.pose.position.z = 0.25/2.0;
     if (name == "right_wall" || name == "left_wall") {
       // green -- vertical walls -- no rotation needed
       marker.pose.orientation.x = 1.0;
@@ -472,7 +477,7 @@ private:
     marker.action = visualization_msgs::msg::Marker::ADD;
     marker.pose.position.x = x;
     marker.pose.position.y = y;
-    marker.pose.position.z = obstacles_height;
+    marker.pose.position.z = 0.25/2.0;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
@@ -545,34 +550,35 @@ private:
       double scan_value = 3.0 * max_range_lidar_;
 
       turtlelib::Vector2D current_robot_location;
-      current_robot_location.x = t_.transform.translation.x;
-      current_robot_location.y = t_.transform.translation.y;
-      double current_robot_theta = t_.transform.rotation.z;
+      current_robot_location.x = diff_drive_.get_configuration().x_;
+      current_robot_location.y = diff_drive_.get_configuration().y_;
+      double current_robot_theta = diff_drive_.get_configuration().theta_;
       turtlelib::Transform2D T_wrobot(current_robot_location, current_robot_theta);
 
       turtlelib::Transform2D T_robotlaser(gamma);
+
       turtlelib::Transform2D T_wlaser = T_wrobot * T_robotlaser;
       turtlelib::Transform2D T_laserw = T_wlaser.inv();
 
       // wall top right
       turtlelib::Point2D wall_top_right;
-      wall_top_right.x = arena_x_length_ / 2;
-      wall_top_right.y = arena_y_length_ / 2;
+      wall_top_right.x = arena_x_length_ / 2.0;
+      wall_top_right.y = arena_y_length_ / 2.0;
 
       // wall top left
       turtlelib::Point2D wall_top_left;
-      wall_top_left.x = -arena_x_length_ / 2;
-      wall_top_left.y = arena_y_length_ / 2;
+      wall_top_left.x = -arena_x_length_ / 2.0;
+      wall_top_left.y = arena_y_length_ / 2.0;
 
       // wall bottom left
       turtlelib::Point2D wall_bottom_left;
-      wall_bottom_left.x = -arena_x_length_ / 2;
-      wall_bottom_left.y = -arena_y_length_ / 2;
+      wall_bottom_left.x = -arena_x_length_ / 2.0;
+      wall_bottom_left.y = -arena_y_length_ / 2.0;
 
       // wall bottom right
       turtlelib::Point2D wall_bottom_right;
-      wall_bottom_right.x = arena_x_length_ / 2;
-      wall_bottom_right.y = -arena_y_length_ / 2;
+      wall_bottom_right.x = arena_x_length_ / 2.0;
+      wall_bottom_right.y = -arena_y_length_ / 2.0;
 
       turtlelib::Point2D wall_top_right_lidar = T_laserw(wall_top_right);
       turtlelib::Point2D wall_top_left_lidar = T_laserw(wall_top_left);
@@ -588,6 +594,79 @@ private:
       if (x_intersection >= 0) {
         scan_value = x_intersection;
       }
+
+
+      slope = (wall_top_right_lidar.y - wall_bottom_right_lidar.y) / (wall_top_right_lidar.x - wall_bottom_right_lidar.x);
+      intercept = wall_top_right_lidar.y - slope * wall_top_right_lidar.x;
+
+      // intersection of lidar beam with wall
+      x_intersection = -intercept / slope;
+
+      if (x_intersection >= 0) {
+        if (x_intersection < scan_value) {
+          scan_value = x_intersection;
+        }
+      }
+
+
+      slope = (wall_bottom_left_lidar.y - wall_top_left_lidar.y) / (wall_bottom_left_lidar.x - wall_top_left_lidar.x);
+      intercept = wall_bottom_left_lidar.y - slope * wall_bottom_left_lidar.x;
+
+      // intersection of lidar beam with wall
+      x_intersection = -intercept / slope;
+
+      if (x_intersection >= 0) {
+        if (x_intersection < scan_value) {
+          scan_value = x_intersection;
+        }
+      }
+
+
+      slope = (wall_bottom_left_lidar.y - wall_bottom_right_lidar.y) / (wall_bottom_left_lidar.x - wall_bottom_right_lidar.x);
+      intercept = wall_bottom_left_lidar.y - slope * wall_bottom_left_lidar.x;
+
+      // intersection of lidar beam with wall
+      x_intersection = -intercept / slope;
+
+      if (x_intersection >= 0) {
+        if (x_intersection < scan_value) {
+          scan_value = x_intersection;
+        }
+      }
+
+
+
+      for (int j = 0; j < int(obstacles_x_.size()); j++) {
+        turtlelib::Point2D obstacle;
+        obstacle.x = obstacles_x_.at(j);
+        obstacle.y = obstacles_y_.at(j);
+
+        turtlelib::Point2D obstacle_lidar = T_laserw(obstacle);
+
+        double obstacle_radius = obstacles_r_.at(j);
+
+        double x_intersection_1 = std::sqrt(
+          std::pow(obstacle_radius, 2) - std::pow(-obstacle_lidar.y, 2)) + obstacle_lidar.x;
+
+        double x_intersection_2 = -std::sqrt(
+          std::pow(obstacle_radius, 2) - std::pow(-obstacle_lidar.y, 2)) + obstacle_lidar.x;
+
+        if(x_intersection_1 >= 0.0){
+          if (x_intersection_1 < scan_value) {
+            scan_value = x_intersection_1;
+          }
+        }
+
+        if(x_intersection_2 >= 0.0){
+          if (x_intersection_2 < scan_value) {
+            scan_value = x_intersection_2;
+          }
+        }
+      }
+
+      // add noise
+      std::normal_distribution<double> noise_gauss_{0.0, noise_level_};
+      scan_value += noise_gauss_(generator_);
 
       if (scan_value > max_range_lidar_) {
         scan_value = max_range_lidar_;

@@ -6,8 +6,9 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Red Robot1
         - /Red Path1/Topic1
+        - /Green Robot1
+        - /Green Robot1/Description Topic1
       Splitter Ratio: 0.5
     Tree Height: 746
   - Class: rviz_common/Selection
@@ -115,17 +116,23 @@ Visualization Manager:
         All Enabled: true
         blue/base_footprint:
           Value: true
-        blue/base_link:
+        green/base_footprint:
           Value: true
-        blue/base_scan:
+        green/base_link:
           Value: true
-        blue/caster_back_link:
+        green/base_scan:
           Value: true
-        blue/imu_link:
+        green/caster_back_link:
           Value: true
-        blue/wheel_left_link:
+        green/imu_link:
           Value: true
-        blue/wheel_right_link:
+        green/odom:
+          Value: true
+        green/wheel_left_link:
+          Value: true
+        green/wheel_right_link:
+          Value: true
+        map:
           Value: true
         nusim/world:
           Value: true
@@ -152,19 +159,23 @@ Visualization Manager:
       Show Names: false
       Tree:
         nusim/world:
+          map:
+            green/odom:
+              green/base_footprint:
+                green/base_link:
+                  green/base_scan:
+                    {}
+                  green/caster_back_link:
+                    {}
+                  green/imu_link:
+                    {}
+                  green/wheel_left_link:
+                    {}
+                  green/wheel_right_link:
+                    {}
           odom:
             blue/base_footprint:
-              blue/base_link:
-                blue/base_scan:
-                  {}
-                blue/caster_back_link:
-                  {}
-                blue/imu_link:
-                  {}
-                blue/wheel_left_link:
-                  {}
-                blue/wheel_right_link:
-                  {}
+              {}
           red/base_footprint:
             red/base_link:
               red/base_scan:
@@ -181,7 +192,7 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: MarkerArray
+      Name: Red Obstacles
       Namespaces:
         obstacle: true
       Topic:
@@ -193,7 +204,7 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: MarkerArray
+      Name: Walls
       Namespaces:
         bottom_wall: true
         left_wall: true
@@ -224,39 +235,6 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        base_scan:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        caster_back_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wheel_left_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wheel_right_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Mass Properties:
         Inertia: false
         Mass: false
@@ -323,7 +301,7 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: MarkerArray
+      Name: Yellow Obstacles
       Namespaces:
         fake_sensor: true
       Topic:
@@ -366,6 +344,105 @@ Visualization Manager:
         Value: /laser_scan
       Use Fixed Frame: true
       Use rainbow: true
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: GreenObstacles
+      Namespaces:
+        green_obstacles: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /slam_node/obstacles
+      Value: true
+    - Alpha: 1
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: ""
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /green/robot_description
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_scan:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        caster_back_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        wheel_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Mass Properties:
+        Inertia: false
+        Mass: false
+      Name: Green Robot
+      TF Prefix: green
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz_default_plugins/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Green Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /green/path
       Value: true
   Enabled: true
   Global Options:
@@ -413,7 +490,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 4.824747085571289
+      Distance: 1.0070040225982666
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -428,10 +505,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9447969198226929
+      Pitch: 0.38479745388031006
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.833580493927002
+      Yaw: 4.563560962677002
     Saved: ~
 Window Geometry:
   Displays:
@@ -439,7 +516,7 @@ Window Geometry:
   Height: 1043
   Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd00000004000000000000019200000375fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d00000375000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000375fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d00000375000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007800000003efc0100000002fb0000000800540069006d0065010000000000000780000002fb00fffffffb0000000800540069006d00650100000000000004500000000000000000000005e80000037500000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000027d00000375fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d00000375000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000375fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d00000375000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007800000003efc0100000002fb0000000800540069006d0065010000000000000780000002fb00fffffffb0000000800540069006d00650100000000000004500000000000000000000004fd0000037500000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
