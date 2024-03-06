@@ -46,7 +46,7 @@ public:
 
   // subscribers
   odom_sub_ = create_subscription<nav_msgs::msg::Odometry>("odom", 10, std::bind(&SLAM::odom_callback, this, std::placeholders::_1));
-  fake_sensor_data_sub_ = create_subscription<nuturtlebot_msgs::msg::SensorData>("/fake_sensor", 10, std::bind(&SLAM::fake_sensor_data_callback, this, std::placeholders::_1));
+  fake_sensor_data_sub_ = create_subscription<visualization_msgs::msg::MarkerArray>("/fake_sensor", 10, std::bind(&SLAM::fake_sensor_data_callback, this, std::placeholders::_1));
 
   // timer
   timer_ = create_wall_timer(
@@ -165,43 +165,76 @@ private:
     
     // prediction step
     predict(dx, dy, dtheta);
-    // RCLCPP_INFO_STREAM(get_logger(), "dx: " << dx << " dy: " << dy << " dtheta: " << dtheta);
-    // RCLCPP_INFO_STREAM("Prediction step done printing mu" << mu_);
 
     // update the state and covariance
-    mu_ = mu_bar_;
+    // mu_ = mu_bar_;
 
-    sigma_ = sigma_bar_;
-    // RCLCPP_INFO_STREAM(get_logger(), "Update step done printing mu" << mu_);
+    // sigma_ = sigma_bar_;
+ 
+  }
 
-    // RCLCPP_INFO_STREAM(get_logger(), "mu: \n" << mu_);
+  void update(int id, double x, double y)
+  {
+    // calculate the estimated range and bearing
+    auto delta_x = mu_bar_.at(3 + 2 * id) - mu_bar_.at(1); 
+    auto delta_y = mu_bar_.at(4 + 2 * id) - mu_bar_.at(2);
+    auto d = pow(delta_x, 2) + pow(delta_y, 2);
 
+    // calculate the jacobian
+    arma::mat H_t = arma::zeros(2, 9);
+    H_t.at(0, 1) = -delta_x / sqrt(d);
+    H_t.at(0, 2) = -delta_y / sqrt(d);
+    H_t.at(1, 0) = -1.0;
+    H_t.at(1, 1) = delta_y / d;
+    H_t.at(1, 2) = -delta_x / d;
+
+    H_t.at(0, 3 + 2 * id) = delta_x / sqrt(d);
+    H_t.at(0, 4 + 2 * id) = delta_y / sqrt(d);
+    H_t.at(1, 3 + 2 * id) = -delta_y / d;
+    H_t.at(1, 4 + 2 * id) = delta_x / d;
+
+    // calculate the kalman gain
+    arma::mat K_t = arma::zeros(9, 2);
+    K_t = sigma_bar_ * H_t.t() * arma::inv(H_t * sigma_bar_ * H_t.t() + R_);
+
+    // calculate the measurement
+    arma::vec z_hat = calculate_r_phi(delta_x, delta_y);
+    z_hat.at(1) = turtlelib::normalize_angle(z_hat.at(1) - mu_bar_.at(0));
+
+    arma::vec z_t = calculate_r_phi(x, y);
+    arma::vec z_diff = arma::zeros(2);
+    z_diff.at(0) = z_t.at(0) - z_hat.at(0);
+    z_diff.at(1) = turtlelib::normalize_angle(z_t.at(1) - z_hat.at(1));
+
+    // update the state and covariance
+    mu_ = mu_ + K_t * z_diff;
+    sigma_ = (arma::eye(9, 9) - K_t * H_t) * sigma_bar_;
+
+    mu_bar_ = mu_;
+    sigma_bar_ = sigma_;
 
   }
 
-  // void update(std::string id, double x, double y)
-  // {
-  //   // calculate the estimated range and bearing
-  //   auto delta_x = prev_green_pose_.position.x * mu_.at(0);
-  //   auto delta_y = prev_green_pose_.position.y * mu_.at(1);
-  //   double r_hat = sqrt(pow(delta_x, 2) + pow(delta_y, 2));
-  //   double phi_hat = atan2(delta_y, delta_x);
-
-  //   auto d = sqrt(pow(delta_x, 2) + pow(delta_y, 2));
-
-  //   // calculate the jacobian
-  //   arma::mat H_t = arma::zeros(2, 9);
-
-
-  //   // update the state and covariance
-  // }
-  // callback function for the fake sensor data
-  void fake_sensor_data_callback(const nuturtlebot_msgs::msg::SensorData::SharedPtr msg)
+  arma::vec calculate_r_phi(double x, double y)
   {
-    ;
+    auto r = sqrt(pow(x, 2) + pow(y, 2));
+    auto phi = atan2(y, x);
+    arma::vec z = {r, phi};
+    return z;
+  }
+
+  // callback function for the fake sensor data
+  void fake_sensor_data_callback(const visualization_msgs::msg::MarkerArray::SharedPtr msg)
+  {
     // get id of obstacles
-    // for ()
-    // rclcpp::Time time = get_clock()->now(); // filler
+    for (int i = 0; i < int(msg->markers.size()); i++) {
+      auto id = msg->markers[i].id; // int
+      double x = msg->markers[i].pose.position.x;
+      double y = msg->markers[i].pose.position.y;
+      if (msg->markers[i].action == visualization_msgs::msg::Marker::ADD) {
+        update(id, x, y);
+      }
+    }
   }
 
   // update odom msgs
@@ -283,7 +316,7 @@ private:
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr green_path_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr green_obstacles_pub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
-  rclcpp::Subscription<nuturtlebot_msgs::msg::SensorData>::SharedPtr fake_sensor_data_sub_;
+  rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr fake_sensor_data_sub_;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr timestep_pub_;
 
@@ -307,13 +340,6 @@ private:
   arma::mat Q_ = arma::zeros(3, 3);
   arma::mat Q_bar_ = arma::zeros(9, 9);
   arma::mat R_ = arma::eye(2, 2);
-  // arma::mat A_r_{9, 9, arma::fill::zeros};
-  // arma::mat A_t_{9, 9, arma::fill::zeros};
-  // arma::mat sigma_{9, 9, arma::fill::eye};
-  // arma::mat sigma_bar_{9, 9, arma::fill::eye};
-  // arma::mat Q_{3, 3, arma::fill::zeros}; // turnable
-  // arma::mat Q_bar_{9, 9, arma::fill::zeros};
-  // arma::mat R_{2, 2, arma::fill::eye}; // turnable -- should be identity matrix I think
 };
 
 int main(int argc, char * argv[])

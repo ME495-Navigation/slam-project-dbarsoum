@@ -634,8 +634,6 @@ private:
         }
       }
 
-
-
       for (int j = 0; j < int(obstacles_x_.size()); j++) {
         turtlelib::Point2D obstacle;
         obstacle.x = obstacles_x_.at(j);
