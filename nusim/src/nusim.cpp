@@ -106,7 +106,8 @@ public:
     declare_parameter("input_noise", 5.0);
     declare_parameter("slip_fraction", 0.5);
     declare_parameter("basic_sensor_variance", 0.01);
-    declare_parameter("max_range", 3.0);
+    // declare_parameter("max_range", 3.0);
+    declare_parameter("max_range", 1.0);
     declare_parameter("collision_radius", 0.11);
     declare_parameter("max_range_lidar", 3.5);
     declare_parameter("min_range", 0.12);
@@ -264,8 +265,8 @@ private:
     red_path_pub_->publish(msg_path_);
 
     // Fake Obstacles: Publish the fake sensor data at 5Hz -- c.10 (basic sensor)
-    // std::normal_distribution<double> noise_gauss_fake_{0.0, basic_sensor_variance_};
-    std::normal_distribution<double> noise_gauss_fake_{0.0, 0.0};
+    std::normal_distribution<double> noise_gauss_fake_{0.0, basic_sensor_variance_};
+    // std::normal_distribution<double> noise_gauss_fake_{0.0, 0.0};
     if (timestep_ % int(rate_ / 5.0)  == 0.0) {
       // TODO: fix the placement of the lidar markers--showing above the walls
       // RCLCPP_INFO(get_logger(), "Publishing fake sensor data", timestep_);

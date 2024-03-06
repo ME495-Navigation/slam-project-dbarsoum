@@ -125,7 +125,16 @@ private:
     Q_bar_.at(0, 0) = Q_.at(0, 0);
     Q_bar_.at(1, 1) = Q_.at(1, 1);
     Q_bar_.at(2, 2) = Q_.at(2, 2);
-    sigma_bar_ = A_t_ * sigma_ * A_t_.t() + Q_bar_; 
+
+    // W matrix
+    double w_t_ = 0.02;
+    std::normal_distribution<double> W_{0.0, w_t_};
+    arma::mat W = arma::zeros(9, 9);
+    for (int i = 0; i < 9; i++) {
+      W.at(i, i) = W_(generator_);
+    }
+
+    sigma_bar_ = A_t_ * sigma_ * A_t_.t() + W * Q_bar_ * W.t(); 
   }
 
 
@@ -193,9 +202,17 @@ private:
     H_t.at(1, 3 + 2 * id) = -delta_y / d;
     H_t.at(1, 4 + 2 * id) = delta_x / d;
 
+    // V -- random guassian distrubtion
+    double v_t_ = 0.02;
+    std::normal_distribution<double> V_{0.0, v_t_};
+    arma::mat V = arma::zeros(2, 2);
+    for (int i = 0; i < 2; i++) {
+      V.at(i, i) = V_(generator_);
+    }
+
     // calculate the kalman gain
     arma::mat K_t = arma::zeros(9, 2);
-    K_t = sigma_bar_ * H_t.t() * arma::inv(H_t * sigma_bar_ * H_t.t() + R_);
+    K_t = sigma_bar_ * H_t.t() * arma::inv(H_t * sigma_bar_ * H_t.t() + V * R_ * V.t());
 
     // calculate the measurement
     arma::vec z_hat = calculate_r_phi(delta_x, delta_y);
@@ -226,15 +243,40 @@ private:
   // callback function for the fake sensor data
   void fake_sensor_data_callback(const visualization_msgs::msg::MarkerArray::SharedPtr msg)
   {
+    // neighbor_ids_ = {};
     // get id of obstacles
     for (int i = 0; i < int(msg->markers.size()); i++) {
       auto id = msg->markers[i].id; // int
       double x = msg->markers[i].pose.position.x;
       double y = msg->markers[i].pose.position.y;
       if (msg->markers[i].action == visualization_msgs::msg::Marker::ADD) {
-        update(id, x, y);
+        // if id is in neighbor_ids, update
+        if (check_neighbors(id)) {
+          update(id, x, y);
+        }
+        else {
+          // if id is not in neighbor_ids, add to neighbor_ids
+          neighbor_ids_.push_back(id);
+
+          // set mu
+          mu_bar_.at(3 + 2 * id) = mu_bar_.at(1) + x;
+          mu_bar_.at(4 + 2 * id) = mu_bar_.at(2) + y;
+
+          mu_.at(3 + 2 * id) = mu_bar_.at(3 + 2 * id);
+          mu_.at(4 + 2 * id) = mu_bar_.at(4 + 2 * id);
+        }
       }
     }
+  }
+
+  bool check_neighbors(int id)
+  {
+    for (int i = 0; i < int(neighbor_ids_.size()); i++) {
+      if (neighbor_ids_.at(i) == id) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // update odom msgs
@@ -287,22 +329,24 @@ private:
     int num_obs = 3;
     visualization_msgs::msg::Marker green_obstacle;
     green_obstacles_array_.markers.clear();
-    for (int i = 0; i < int(num_obs); i++) {
+    // for (int i = 0; i < int(num_obs); i++) {
+    // RCLCPP_INFO_STREAM(get_logger(), "Neighbors size = " << neighbor_ids_.size());
+    for (int i = 0; i < int(neighbor_ids_.size()); i++) {
       green_obstacle.header.stamp = get_clock()->now();
       green_obstacle.header.frame_id = "map";
       green_obstacle.ns = "green_obstacles";
-      green_obstacle.id = i;
+      green_obstacle.id = neighbor_ids_.at(i);
       green_obstacle.type = visualization_msgs::msg::Marker::CYLINDER;
       green_obstacle.action = visualization_msgs::msg::Marker::ADD;
-      green_obstacle.pose.position.x = mu_.at(3 + 2 * i);
-      green_obstacle.pose.position.y = mu_.at(4 + 2 * i);
+      green_obstacle.pose.position.x = mu_.at(3 + 2 * neighbor_ids_.at(i));
+      green_obstacle.pose.position.y = mu_.at(4 + 2 * neighbor_ids_.at(i));
       green_obstacle.pose.position.z = 0.25 / 2.0;
       green_obstacle.pose.orientation.x = 0.0;
       green_obstacle.pose.orientation.y = 0.0;
       green_obstacle.pose.orientation.z = 0.0;
       green_obstacle.pose.orientation.w = 1.0;
       green_obstacle.scale.x = 0.1;
-      green_obstacle.scale.y = 0.1; // come back to this
+      green_obstacle.scale.y = 0.1;
       green_obstacle.scale.z = 0.25;
       green_obstacle.color.r = 0.0;
       green_obstacle.color.g = 1.0;
@@ -331,8 +375,10 @@ private:
   turtlelib::Transform2D T_mr_;
   turtlelib::Transform2D T_mo_;
 
-  arma::vec mu_ = {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
-  arma::vec mu_bar_= {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
+  // arma::vec mu_ = {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
+  // arma::vec mu_bar_= {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
+  arma::mat mu_ = arma::zeros(9, 1);
+  arma::mat mu_bar_ = arma::zeros(9, 1);
   arma::mat A_r_ = arma::zeros(9, 9);
   arma::mat A_t_ = arma::zeros(9, 9);
   arma::mat sigma_ = arma::eye(9, 9);
@@ -340,6 +386,10 @@ private:
   arma::mat Q_ = arma::zeros(3, 3);
   arma::mat Q_bar_ = arma::zeros(9, 9);
   arma::mat R_ = arma::eye(2, 2);
+
+  std::default_random_engine generator_;
+
+  std::vector<int> neighbor_ids_ = {};
 };
 
 int main(int argc, char * argv[])
