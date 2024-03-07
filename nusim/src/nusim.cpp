@@ -106,8 +106,8 @@ public:
     declare_parameter("input_noise", 5.0);
     declare_parameter("slip_fraction", 0.5);
     declare_parameter("basic_sensor_variance", 0.01);
-    // declare_parameter("max_range", 3.0);
-    declare_parameter("max_range", 1.0);
+    declare_parameter("max_range", 3.0);
+    // declare_parameter("max_range", 1.0);
     declare_parameter("collision_radius", 0.11);
     declare_parameter("max_range_lidar", 3.5);
     declare_parameter("min_range", 0.12);
@@ -361,13 +361,13 @@ private:
       wheel_velocity_left_ = 0.0;
     }
     else {
-      wheel_velocity_left_ += noise_gauss_(generator_); //* (1 + noise_uniform_(generator_));
+      wheel_velocity_left_ += noise_gauss_(generator_);
     }
     if (turtlelib::almost_equal(wheel_velocity_right_, 0.0)) {
       wheel_velocity_right_ = 0.0;
     }
     else {
-      wheel_velocity_right_ += noise_gauss_(generator_); //+ (1 + noise_uniform_(generator_));
+      wheel_velocity_right_ += noise_gauss_(generator_);
     }
 
     sensor_data_.left_encoder = sensor_data_.left_encoder + (wheel_velocity_left_) * (1 / rate_) * encoder_ticks_per_rad_;

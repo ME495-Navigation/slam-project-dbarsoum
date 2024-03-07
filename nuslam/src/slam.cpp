@@ -126,15 +126,7 @@ private:
     Q_bar_.at(1, 1) = Q_.at(1, 1);
     Q_bar_.at(2, 2) = Q_.at(2, 2);
 
-    // W matrix
-    double w_t_ = 0.02;
-    std::normal_distribution<double> W_{0.0, w_t_};
-    arma::mat W = arma::zeros(9, 9);
-    for (int i = 0; i < 9; i++) {
-      W.at(i, i) = W_(generator_);
-    }
-
-    sigma_bar_ = A_t_ * sigma_ * A_t_.t() + W * Q_bar_ * W.t(); 
+    sigma_bar_ = A_t_ * sigma_ * A_t_.t() + Q_bar_; 
   }
 
 
@@ -202,17 +194,9 @@ private:
     H_t.at(1, 3 + 2 * id) = -delta_y / d;
     H_t.at(1, 4 + 2 * id) = delta_x / d;
 
-    // V -- random guassian distrubtion
-    double v_t_ = 0.02;
-    std::normal_distribution<double> V_{0.0, v_t_};
-    arma::mat V = arma::zeros(2, 2);
-    for (int i = 0; i < 2; i++) {
-      V.at(i, i) = V_(generator_);
-    }
-
     // calculate the kalman gain
     arma::mat K_t = arma::zeros(9, 2);
-    K_t = sigma_bar_ * H_t.t() * arma::inv(H_t * sigma_bar_ * H_t.t() + V * R_ * V.t());
+    K_t = sigma_bar_ * H_t.t() * arma::inv(H_t * sigma_bar_ * H_t.t() + R_);
 
     // calculate the measurement
     arma::vec z_hat = calculate_r_phi(delta_x, delta_y);
