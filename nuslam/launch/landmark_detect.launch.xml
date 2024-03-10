@@ -1,0 +1,12 @@
+<launch>
+    <arg name="cmd_src" default="circle" />
+    <arg name="robot" default="nusim" />
+    <arg name="use_rviz" default="true" />
+
+    <node pkg="rviz2" exec="rviz2" if="$(eval '\'$(var robot)\' == \'nusim\' and \'$(var use_rviz)\' == \'true\'')" args="-d $(find-pkg-share nuslam)/config/slam.rviz"/>
+
+    <node pkg="nusim" exec="landmarks" name="landmarks">
+        <param name="robot" value="$(arg robot)"/>
+    </node>
+
+</launch>

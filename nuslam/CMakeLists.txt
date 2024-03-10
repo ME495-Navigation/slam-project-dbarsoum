@@ -25,7 +25,22 @@ find_package(nusim REQUIRED)
 find_package(Armadillo REQUIRED)
 
 add_executable(slam_node src/slam.cpp)
+add_executable(landmarks src/landmarks.cpp)
+
 ament_target_dependencies(slam_node
+  rclcpp
+  std_msgs
+  std_srvs
+  geometry_msgs
+  tf2
+  tf2_ros
+  visualization_msgs
+  nuturtlebot_msgs
+  turtlelib
+  nav_msgs
+  nusim)
+
+ament_target_dependencies(landmarks
   rclcpp
   std_msgs
   std_srvs
@@ -42,7 +57,10 @@ include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 
 target_link_libraries(slam_node turtlelib::turtlelib "${cpp_typesupport_target}")
+target_link_libraries(landmarks turtlelib::turtlelib "${cpp_typesupport_target}")
+
 target_link_libraries(slam_node ${ARMADILLO_LIBRARIES})
+target_link_libraries(landmarks ${ARMADILLO_LIBRARIES})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -58,6 +76,7 @@ endif()
 
 install(TARGETS
   slam_node
+  landmarks
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch config
