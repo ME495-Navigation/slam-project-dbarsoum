@@ -7,4 +7,4 @@ This repository consists of several ROS packages
 - turtlelib - contains library (and tests) for geometry and se2d primitives
 - nusim - ros2 cmake pkg to simulate and visualize the robot, obstacles, and arena in rviz2
 - nuturtle_control - ros2 cmake pkg that contains the controller for the turtlebot to move in a circle
-
+- nuslam - ros2 cmake pkg that contains the SLAM algorithm to estimate the robot's pose and the landmarks' positions
