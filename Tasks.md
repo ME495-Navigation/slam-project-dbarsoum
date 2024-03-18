@@ -64,4 +64,3 @@ Tasks:
 - [ ] Task S (Feature Detection)
     - [x] Task S.1 (Landmark Detection)
     - [ ] Task S.2 (Testing Landmark Detection)
-
