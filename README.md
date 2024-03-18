@@ -1,6 +1,8 @@
 # ME495 Sensing, Navigation and Machine Learning For Robotics
 * Demiana Barsoum
 * Winter 2024
+* Northwestern University
+
 # Package List
 This repository consists of several ROS packages
 - nuturtle_description - ROS cmake pkg that includes the robot description of the turtlebot. (includes urdf files, basic debugging, testing, and visualization code)
@@ -8,3 +10,5 @@ This repository consists of several ROS packages
 - nusim - ros2 cmake pkg to simulate and visualize the robot, obstacles, and arena in rviz2
 - nuturtle_control - ros2 cmake pkg that contains the controller for the turtlebot to move in a circle
 - nuslam - ros2 cmake pkg that contains the SLAM algorithm to estimate the robot's pose and the landmarks' positions
+
+Each package has its own README.md file that explains the package and how to run it with videos and images.

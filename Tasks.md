@@ -62,6 +62,6 @@ Tasks:
     - [ ] Task L.3 (SLAM with unknown data association)
     - [ ] Task L.4 (SLAM in the real world)
 - [ ] Task S (Feature Detection)
-    - [ ] Task S.1 (Landmark Detection)
+    - [x] Task S.1 (Landmark Detection)
     - [ ] Task S.2 (Testing Landmark Detection)
 
